@@ -21,7 +21,7 @@ font-file-finder = (parent) ->
   files = fs.readdir-sync parent .map -> "#parent/#it"
   ret = []
   for file in files =>
-    if fs.stat-sync file .is-directory! => ret = ret ++ recurse-dir(file)
+    if fs.stat-sync file .is-directory! => ret = ret ++ font-file-finder(file)
     else if /\.[t]tf$/.exec(file) => ret.push file
   return ret
 

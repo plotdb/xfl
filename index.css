@@ -20,6 +20,9 @@ h1 ruby {
 h1 ruby rt {
   font-size: 14px;
 }
+#chooser .btn {
+  font-size: 20px;
+}
 #footer {
   font-family: helvetica, arial, sans-serif;
   font-size: 16px;

@@ -2,3 +2,5 @@ node_modules
 .*.swp
 chinese
 fonts
+pending
+assets

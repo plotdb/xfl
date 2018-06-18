@@ -23,7 +23,7 @@ $(document).ready(function(){
     },
     load: function(font){
       var this$ = this;
-      return xfl.load("/fonts/" + font, function(font){
+      return xfl.load("https://plotdb.github.io/xl-fontset/alpha/" + font, function(font){
         this$.font = font;
         this$.font.sync(document.body.innerText);
         return this$.sync();
@@ -39,7 +39,7 @@ $(document).ready(function(){
     }
   };
   editor.init();
-  return xfl.load('/fonts/王漢宗仿宋體', function(font){
+  return xfl.load('https://plotdb.github.io/xl-fontset/alpha/王漢宗仿宋體', function(font){
     var headlines, texts;
     headlines = Array.from(document.querySelectorAll('h1,h2,h3'));
     texts = headlines.map(function(it){

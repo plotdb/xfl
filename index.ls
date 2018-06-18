@@ -11,7 +11,7 @@ editor = do
       @load font
     @load \王漢宗中楷注音體
   load: (font) ->
-    xfl.load "/fonts/#font", (font) ~>
+    xfl.load "https://plotdb.github.io/xl-fontset/alpha/#font", (font) ~>
       @font = font
       @font.sync document.body.innerText
       @sync!
@@ -23,7 +23,7 @@ editor = do
 
 editor.init!
 
-xfl.load \/fonts/王漢宗仿宋體, (font) ->
+xfl.load \https://plotdb.github.io/xl-fontset/alpha/王漢宗仿宋體, (font) ->
   headlines = Array.from(document.querySelectorAll 'h1,h2,h3')
   texts = headlines.map(-> it.innerText).join('')
   font.sync texts

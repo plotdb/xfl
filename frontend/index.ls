@@ -1,11 +1,12 @@
-cfl = do
+xfl = do
   fonts: {}
   load: (path, options={}, callback) ->
     if !path => return
     xhr = new XMLHttpRequest!
     path = path.replace /\/$/, ''
     name = options.font-name or (path.split("/").filter(->it)[* - 1])
-    if @fonts[path] => return
+    cb = (if typeof(options) == 'function' => options else callback)
+    if @fonts[path] => return cb that
     slug = (options.font-name or Math.random!toString(16).substring(2))
     @fonts[path] = {name, path, className: "font-#slug", hit: {}}
     @fonts[path].sync = (txt) ->
@@ -30,19 +31,19 @@ cfl = do
         """
       idxlist = idxlist.map(-> "#{name}-#it").join(\,)
       css += ".#{@className} { font-family: #idxlist; }"
-      node = cfl.node or document.createElement("style")
+      @css = [(v.css or '') for k,v of xfl.fonts].join('\n')
+      node = xfl.node or document.createElement("style")
       node.textContent = css
-      if cfl.node => return
+      if xfl.node => return
       node.setAttribute \type, 'text/css'
       document.body.appendChild node
-      cfl.node = node
+      xfl.node = node
 
     xhr.addEventListener \readystatechange, ~>
       if xhr.readyState != 4 => return
       hash = {}
       xhr.responseText.split(\\n).map (d,i) -> d.split(' ').map (e,j) -> hash[e] = (i + 1)
       @fonts[path].code-to-set = hash
-      cb = (if typeof(options) == 'function' => options else callback)
       if cb => cb @fonts[path]
     xhr.open \GET, "#path/charmap.txt"
     xhr.send!
@@ -51,7 +52,7 @@ cfl = do
 # sample usage
 /*
 <- $ document .ready
-cfl.load "/fonts/hensan/", {font-name: 'hensan'}, (font) ->
+xfl.load "/fonts/hensan/", {font-name: 'hensan'}, (font) ->
   textarea = document.querySelector \textarea
   textarea.addEventListener \keyup, -> font.sync textarea.value
   textarea.classList.add font.className

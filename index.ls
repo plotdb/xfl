@@ -9,7 +9,7 @@ editor = do
       font = e.target.getAttribute \data-font 
       if !font => return
       @load font
-    @load \王漢宗中楷注音體
+    @load \王漢宗細圓
   load: (font) ->
     xfl.load "https://plotdb.github.io/xl-fontset/alpha/#font", (font) ~>
       @font = font
@@ -23,7 +23,7 @@ editor = do
 
 editor.init!
 
-xfl.load \https://plotdb.github.io/xl-fontset/alpha/王漢宗仿宋體, (font) ->
+xfl.load \https://plotdb.github.io/xl-fontset/alpha/王漢宗超明, (font) ->
   headlines = Array.from(document.querySelectorAll 'h1,h2,h3')
   texts = headlines.map(-> it.innerText).join('')
   font.sync texts

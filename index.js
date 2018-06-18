@@ -19,7 +19,7 @@ $(document).ready(function(){
         }
         return this$.load(font);
       });
-      return this.load('王漢宗中楷注音體');
+      return this.load('王漢宗細圓');
     },
     load: function(font){
       var this$ = this;
@@ -39,7 +39,7 @@ $(document).ready(function(){
     }
   };
   editor.init();
-  return xfl.load('https://plotdb.github.io/xl-fontset/alpha/王漢宗仿宋體', function(font){
+  return xfl.load('https://plotdb.github.io/xl-fontset/alpha/王漢宗超明', function(font){
     var headlines, texts;
     headlines = Array.from(document.querySelectorAll('h1,h2,h3'));
     texts = headlines.map(function(it){

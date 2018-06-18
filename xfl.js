@@ -22,10 +22,40 @@ xfl = {
       name: name,
       path: path,
       className: "font-" + slug,
-      hit: {}
+      hit: {},
+      url: {}
+    };
+    this.fonts[path].ajax = function(idxlist, cb){
+      var check, this$ = this;
+      check = function(){
+        if (idxlist.map(function(it){
+          return this$.url[it];
+        }).filter(function(it){
+          return it;
+        }).length === idxlist.length) {
+          return cb();
+        }
+      };
+      return idxlist.map(function(d, i){
+        var xhr;
+        if (this$.url[d]) {
+          return check();
+        }
+        xhr = new XMLHttpRequest();
+        xhr.addEventListener('readystatechange', function(){
+          if (xhr.readyState !== 4) {
+            return;
+          }
+          this$.url[d] = URL.createObjectURL(xhr.response);
+          return check();
+        });
+        xhr.open('GET', path + "/" + d + ".ttf");
+        xhr.responseType = 'blob';
+        return xhr.send();
+      });
     };
     this.fonts[path].sync = function(txt){
-      var hash, i$, to$, i, code, setIdx, idxlist, res$, k, css, len$, idx, v, node;
+      var hash, i$, to$, i, code, setIdx, k, this$ = this;
       hash = {};
       for (i$ = 0, to$ = txt.length; i$ < to$; ++i$) {
         i = i$;
@@ -38,36 +68,47 @@ xfl = {
           hash[setIdx] = true;
         }
       }
-      res$ = [];
-      for (k in this.hit) {
-        res$.push(k);
-      }
-      idxlist = res$;
-      css = "";
-      for (i$ = 0, len$ = idxlist.length; i$ < len$; ++i$) {
-        idx = idxlist[i$];
-        css += "@font-face {\n  font-family: " + name + "-" + idx + ";\n  src: url(" + path + "/" + idx + ".woff2) format('woff2');\n}";
-      }
-      idxlist = idxlist.map(function(it){
-        return name + "-" + it;
-      }).join(',');
-      css += "." + this.className + " { font-family: " + idxlist + "; }";
-      this.css = (function(){
-        var ref$, results$ = [];
-        for (k in ref$ = xfl.fonts) {
-          v = ref$[k];
-          results$.push(v.css || '');
+      return this.ajax((function(){
+        var results$ = [];
+        for (k in this.hit) {
+          results$.push(k);
         }
         return results$;
-      }()).join('\n');
-      node = xfl.node || document.createElement("style");
-      node.textContent = css;
-      if (xfl.node) {
-        return;
-      }
-      node.setAttribute('type', 'text/css');
-      document.body.appendChild(node);
-      return xfl.node = node;
+      }.call(this)), function(){
+        var css, idxlist, res$, k, i$, len$, idx, url, v, node;
+        css = "";
+        res$ = [];
+        for (k in this$.hit) {
+          res$.push(k);
+        }
+        idxlist = res$;
+        for (i$ = 0, len$ = idxlist.length; i$ < len$; ++i$) {
+          idx = idxlist[i$];
+          url = this$.url[idx] || path + "/" + idx + ".woff2";
+          css += "@font-face {\n  font-family: " + name + "-" + idx + ";\n  src: url(" + url + ") format('woff2');\n}";
+        }
+        idxlist = idxlist.map(function(it){
+          return name + "-" + it;
+        }).join(',');
+        css += "." + this$.className + " { font-family: " + idxlist + "; }";
+        this$.css = css;
+        css = (function(){
+          var ref$, results$ = [];
+          for (k in ref$ = xfl.fonts) {
+            v = ref$[k];
+            results$.push(v.css || '');
+          }
+          return results$;
+        }()).join('\n');
+        node = xfl.node || document.createElement("style");
+        node.textContent = css;
+        if (xfl.node) {
+          return;
+        }
+        node.setAttribute('type', 'text/css');
+        document.body.appendChild(node);
+        return xfl.node = node;
+      });
     };
     xhr.addEventListener('readystatechange', function(){
       var hash;
@@ -89,12 +130,3 @@ xfl = {
     return xhr.send();
   }
 };
-/*
-<- $ document .ready
-xfl.load "/fonts/hensan/", {font-name: 'hensan'}, (font) ->
-  textarea = document.querySelector \textarea
-  textarea.addEventListener \keyup, -> font.sync textarea.value
-  textarea.classList.add font.className
-  console.log document.body.textContent
-  font.sync document.body.textContent
-*/

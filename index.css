@@ -20,8 +20,7 @@ h1 ruby {
 h1 ruby rt {
   font-size: 14px;
 }
-h1 sup {
-  font-size: 24px;
-  vertical-align: 30px;
-  vertical-align: top;
+#footer {
+  font-family: helvetica, arial, sans-serif;
+  font-size: 16px;
 }

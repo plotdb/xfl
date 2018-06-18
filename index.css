@@ -1,0 +1,27 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 24px;
+}
+#root {
+  margin: 20px auto;
+  padding: 20px 0 60px;
+  max-width: 1200px;
+  width: 90%;
+}
+#root textarea {
+  font-size: 30px;
+}
+h1 ruby {
+  -webkit-ruby-position: over;
+  font-size: 0.85em;
+}
+h1 ruby rt {
+  font-size: 14px;
+}
+h1 sup {
+  font-size: 24px;
+  vertical-align: 30px;
+  vertical-align: top;
+}

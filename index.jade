@@ -1,0 +1,54 @@
+doctype html
+html
+  include mixin.jade
+  include font-list.jade
+  head
+    meta(charset="utf-8")
+    link(rel="stylesheet",type="text/css",href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css")
+    link(rel="stylesheet",type="text/css",href="index.css")
+    script(src="https://code.jquery.com/jquery-3.3.1.slim.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js")
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js")
+    script(src="xfl.js")
+
+
+  body: #root
+    //-h1 XL Font Load / 大尺寸#[sup 中文]字型載入器
+    h1
+      span XL Font Load / 
+      ruby
+        rb 大尺寸
+        rt 中日韓
+      span 字型載入器
+    hr
+    #chooser
+      .btn-group.mb-2.mr-2
+        each font in featurefonts
+          .btn.btn-outline-dark(data-font=font)= font
+      .dropdown(style="display:inline-block;vertical-align:top")
+        .btn.btn-outline-dark.dropdown-toggle(data-toggle="dropdown") More
+        .dropdown-menu(style="max-height:400px;overflow:scroll")
+          each font in fontlist
+            a.dropdown-item(href="#",data-font=font)= font
+
+    textarea.form-control(rows="7",placeholder="在這邊隨便輸入一些中文字看看吧...")
+    +nbr(2)
+    h2 這是什麼？
+    p 中文字型檔向來動輒數MB，若要做為網路字型使用往往很卡。其它解決方案大多是商業付費服務，而且針對動態內容，要嘛做不好，亦或成本很高。
+    p 這個專案實作了一個快速中文字型載入模組，將字型檔依字頻切成小塊，再根據網頁內容選擇需要載入的字型子集，因此我們可以快速的選取想要的字型，套用在網站上。
+    p 另一方面，此專案亦收集了數十套免費、可商用的開放中文字型，也提供了預先切割好的字型模組，可直接分支使用，不需再花時間自行搜集處理。
+    br
+    h2 我要怎麼取得？
+    p 此專案託管於 #[a(href="https://github.com/plotdb/xl-fontload") Github 專案庫] ，您可以造訪該網址並利用 Git 分支，或者直接下載整包模組。
+    br
+    h3 我可以整理自己的中文字型集嗎？
+    p 可以！此專案連同編譯程式碼一同釋出，可自動編譯切割指定之字型檔。
+    br
+    h3 換字型會閃 / 打字會閃 / 載入還是很久 / 字型有缺字
+    p 這些都是未來改進方向，科科。
+    br
+    hr
+    p source code copyrighted #[a(href="https://twitter.com/zbryikt") @zbryikt] released under MIT License
+    p open sourced in #[a(href="https://github.com/plotdb/xl-fontload") Github Repo]
+
+  script(src="index.js")

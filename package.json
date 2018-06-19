@@ -1,12 +1,12 @@
 {
   "author": "Kirby Wu",
-  "name": "cjk-web-font-load",
+  "name": "xl-fontload",
   "description": "make quick and dynamic CJK web font",
   "version": "0.0.1",
-  "homepage": "https://github.com/zbryikt/cjk-web-font-load",
+  "homepage": "https://github.com/plotdb/xl-fontload",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zbryikt/cjk-web-font-load"
+    "url": "https://github.com/plotdb/xl-fontload"
   },
   "engines": {
     "node": ">=8.5.0",

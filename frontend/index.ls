@@ -1,5 +1,6 @@
 xfl = do
   fonts: {}
+
   load: (path, options={}, callback) ->
     if !path => return
     xhr = new XMLHttpRequest!
@@ -8,7 +9,20 @@ xfl = do
     cb = (if typeof(options) == 'function' => options else callback)
     if @fonts[path] => return cb that
     slug = (options.font-name or Math.random!toString(16).substring(2))
-    @fonts[path] = {name, path, className: "font-#slug", hit: {}}
+    @fonts[path] = {name, path, className: "font-#slug", hit: {}, url: {}}
+    @fonts[path].ajax = (idxlist, cb) ->
+      check = ~> if idxlist.map(~>@url[it]).filter(->it).length == idxlist.length => return cb!
+      idxlist.map (d,i) ~>
+        if @url[d] => return check!
+        xhr = new XMLHttpRequest!
+        xhr.addEventListener \readystatechange, ~>
+          if xhr.readyState != 4 => return
+          @url[d] = URL.createObjectURL(xhr.response)
+          return check!
+        xhr.open \GET, "#path/#d.ttf"
+        xhr.responseType = \blob
+        xhr.send!
+
     @fonts[path].sync = (txt) ->
       hash = {}
       for i from 0 til txt.length =>
@@ -20,18 +34,21 @@ xfl = do
         else if !@hit[set-idx] =>
           @hit[set-idx] = true
           hash[set-idx] = true
-      idxlist = [k for k of @hit]
+      <~ @ajax [k for k of @hit], _
       css = ""
+      idxlist = [k for k of @hit]
       for idx in idxlist =>
+        url = @url[idx] or "#path/#idx.woff2"
         css += """
         @font-face {
           font-family: #{name}-#{idx};
-          src: url(#path/#idx.woff2) format('woff2');
+          src: url(#{url}) format('woff2');
         }
         """
-      idxlist = idxlist.map(-> "#{name}-#it").join(\,)
+      idxlist := idxlist.map(-> "#{name}-#it").join(\,)
       css += ".#{@className} { font-family: #idxlist; }"
-      @css = [(v.css or '') for k,v of xfl.fonts].join('\n')
+      @css = css
+      css = [(v.css or '') for k,v of xfl.fonts].join('\n')
       node = xfl.node or document.createElement("style")
       node.textContent = css
       if xfl.node => return
@@ -47,15 +64,3 @@ xfl = do
       if cb => cb @fonts[path]
     xhr.open \GET, "#path/charmap.txt"
     xhr.send!
-
-
-# sample usage
-/*
-<- $ document .ready
-xfl.load "/fonts/hensan/", {font-name: 'hensan'}, (font) ->
-  textarea = document.querySelector \textarea
-  textarea.addEventListener \keyup, -> font.sync textarea.value
-  textarea.classList.add font.className
-  console.log document.body.textContent
-  font.sync document.body.textContent
-*/

@@ -8,7 +8,7 @@ xfl = do
       path.replace(/\/$/, ''),
       (if typeof(options) == 'function' => options else callback)
     ]
-    if @fonts[path] => return cb that
+    if @fonts[path] => return (if cb => cb @fonts[path] else null)
     [ext, name, slug] = [
       ((/\.([a-zA-Z0-9]+)$/.exec(path) or []).1 or '').toLowerCase!,
       options.font-name or (path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1]),
@@ -38,7 +38,7 @@ xfl = do
         xhr.responseType = \blob
         xhr.send!
 
-    font.sync = (txt) ->
+    font.sync = (txt = "", cb) ->
       if @nosync => return # fonts with file extension will be treated as needing directly download
       [misschar, missset]= [{}, {}]
       for i from 0 til txt.length =>
@@ -63,6 +63,7 @@ xfl = do
       css += ".#{@className} { font-family: #name; }"
       @css = css
       xfl.update!
+      if cb => cb!
 
     if font.ext => # load directly if path has extension ...
       font.nosync = true

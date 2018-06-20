@@ -6,14 +6,14 @@ xfl = {
     return (code >= 0xff00 && code <= 0xffef) || (code >= 0x4e00 && code <= 0x9fff);
   },
   load: function(path, options, callback){
-    var ref$, cb, that, ext, name, slug, font, format, xhr, this$ = this;
+    var ref$, cb, ext, name, slug, font, format, xhr, this$ = this;
     options == null && (options = {});
     if (!path) {
       return;
     }
     ref$ = [path.replace(/\/$/, ''), typeof options === 'function' ? options : callback], path = ref$[0], cb = ref$[1];
-    if (that = this.fonts[path]) {
-      return cb(that);
+    if (this.fonts[path]) {
+      return cb ? cb(this.fonts[path]) : null;
     }
     ref$ = [
       ((/\.([a-zA-Z0-9]+)$/.exec(path) || [])[1] || '').toLowerCase(), options.fontName || (ref$ = path.replace(/\.[a-zA-Z0-9]+$/, '').split("/").filter(function(it){
@@ -59,8 +59,9 @@ xfl = {
         return xhr.send();
       });
     };
-    font.sync = function(txt){
+    font.sync = function(txt, cb){
       var ref$, misschar, missset, i$, to$, i, code, setIdx, k, this$ = this;
+      txt == null && (txt = "");
       if (this.nosync) {
         return;
       }
@@ -117,7 +118,10 @@ xfl = {
         }).join(',');
         css += "." + this$.className + " { font-family: " + name + "; }";
         this$.css = css;
-        return xfl.update();
+        xfl.update();
+        if (cb) {
+          return cb();
+        }
       });
     };
     if (font.ext) {

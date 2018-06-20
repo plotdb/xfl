@@ -86,6 +86,6 @@ Options:
 LICENSE
 --------
 
- * Font Files: All curated font files are separatedly placed in #[another repo (xl-fontset)](https://github.com/plotdb/xl-fontset/) and are either GPL or SIL-OFL Licensed. (OK for Commercial Use)
+ * Font Files: All curated font files are separatedly placed in [another repo (xl-fontset)](https://github.com/plotdb/xl-fontset/) and are either GPL or SIL-OFL Licensed. (OK for Commercial Use)
  * Source codes are released under MIT License.
 

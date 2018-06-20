@@ -22,9 +22,8 @@ Usage / Compiler
  * 此專案使用 nodejs, 請先安裝 nodejs 與 npm ，並利用 npm install 建利 node_modules 目錄。
    參考指令: 
 
-    curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
-    npm install
-
+       curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
+       npm install
 
  * 將欲轉換的字型整理至 fonts/ 目錄，目錄結構不拘。程式會自動掃出所有字型檔。
    - 目前只吃 ttf 檔唷～啾咪。

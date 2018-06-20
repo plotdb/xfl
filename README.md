@@ -1,7 +1,7 @@
-cjk-font-load ( tentative )
+xl-fontload
 =======
 
-中文字型網路化. 依詞頻切割字型，並透過前端實作 lazy loading.
+中文字型網路化。 依詞頻切割字型，並透過前端實作 lazy loading。 無需後端程式支援。
 
  * 字頻檔 ( word-frequency.csv )
    示範檔來源: [教育部](http://language.moe.gov.tw/001/Upload/files/SITE_CONTENT/M0001/86NEWS/download/86rest17.TXT)
@@ -19,7 +19,15 @@ cjk-font-load ( tentative )
 Usage / Compiler
 ----------------
 
- * 將欲轉換的字型整理至 fonts/ 目錄
+ * 此專案使用 nodejs, 請先安裝 nodejs 與 npm ，並利用 npm install 建利 node_modules 目錄。
+   參考指令: 
+
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
+    npm install
+
+
+ * 將欲轉換的字型整理至 fonts/ 目錄，目錄結構不拘。程式會自動掃出所有字型檔。
+   - 目前只吃 ttf 檔唷～啾咪。
  * 準備字型檔 word-frequency.csv
  * 執行轉換程式 compile.sh 
  * 字型檔輸出於 assets/ 目錄.

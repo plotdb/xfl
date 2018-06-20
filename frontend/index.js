@@ -63,7 +63,7 @@ xfl = {
       var ref$, misschar, missset, i$, to$, i, code, setIdx, k, this$ = this;
       txt == null && (txt = "");
       if (this.nosync) {
-        return;
+        return cb ? cb() : '';
       }
       ref$ = [{}, {}], misschar = ref$[0], missset = ref$[1];
       for (i$ = 0, to$ = txt.length; i$ < to$; ++i$) {

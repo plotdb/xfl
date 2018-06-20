@@ -55,7 +55,7 @@ Usage / Frontend
 
 若你沒有打算自幹字型檔，可以使用我們透過 Github Pages 準備的一組字型檔，專案庫的位置在[這裡](https://github.com/plotdb/xl-fontset/)，欲使用則可以透過這個網址：[http://plotdb.github.io/xl-fontset/alpha/<字型名稱>](http://plotdb.github.io/xl-fontset/alpha/<字型名稱>)，例如：
 
-    xfl.load("http://plotdb.github.io/xl-fontset/alpha/瀨戶字体", function() 
+    xfl.load("http://plotdb.github.io/xl-fontset/alpha/瀨戶字体", function(font) { ...
 
 請自行將「<字型名稱>」換成欲使用的字型即可。目前支援的字型一覽可在[這裡](https://github.com/plotdb/xl-fontset/tree/gh-pages/alpha)找到，包括王漢宗 42 字型、刻石錄、站酷、cwText-Q、瀨戶字体等共 57 種字型。
 

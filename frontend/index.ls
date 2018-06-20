@@ -8,7 +8,7 @@ xfl = do
       path.replace(/\/$/, ''),
       (if typeof(options) == 'function' => options else callback)
     ]
-    if @fonts[path] => return cb that
+    if @fonts[path] => return (if cb => cb @fonts[path] else null)
     [ext, name, slug] = [
       ((/\.([a-zA-Z0-9]+)$/.exec(path) or []).1 or '').toLowerCase!,
       options.font-name or (path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1]),

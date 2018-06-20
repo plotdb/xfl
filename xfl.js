@@ -2,30 +2,35 @@
 var xfl;
 xfl = {
   fonts: {},
+  isCJK: function(){
+    return (code >= 0xff00 && code <= 0xffef) || (code >= 0x4e00 && code <= 0x9fff);
+  },
   load: function(path, options, callback){
-    var xhr, name, ref$, cb, that, slug, this$ = this;
+    var ref$, cb, that, ext, name, slug, font, format, xhr, this$ = this;
     options == null && (options = {});
     if (!path) {
       return;
     }
-    xhr = new XMLHttpRequest();
-    path = path.replace(/\/$/, '');
-    name = options.fontName || (ref$ = path.split("/").filter(function(it){
-      return it;
-    }))[ref$.length - 1];
-    cb = typeof options === 'function' ? options : callback;
+    ref$ = [path.replace(/\/$/, ''), typeof options === 'function' ? options : callback], path = ref$[0], cb = ref$[1];
     if (that = this.fonts[path]) {
       return cb(that);
     }
-    slug = options.fontName || Math.random().toString(16).substring(2);
-    this.fonts[path] = {
+    ref$ = [
+      ((/\.([a-zA-Z0-9]+)$/.exec(path) || [])[1] || '').toLowerCase(), options.fontName || (ref$ = path.replace(/\.[a-zA-Z0-9]+$/, '').split("/").filter(function(it){
+        return it;
+      }))[ref$.length - 1], options.fontName || Math.random().toString(16).substring(2)
+    ], ext = ref$[0], name = ref$[1], slug = ref$[2];
+    this.fonts[path] = font = {
       name: name,
       path: path,
-      className: "font-" + slug,
+      options: options,
+      className: "xfl-" + slug,
+      codeToSet: {},
       hit: {},
-      url: {}
+      url: {},
+      ext: ext && ~['woff2', 'woff', 'eot', 'ttf', 'otf'].indexOf(ext) ? ext : null
     };
-    this.fonts[path].ajax = function(idxlist, cb){
+    font.ajax = function(idxlist, cb){
       var check, this$ = this;
       check = function(){
         if (idxlist.map(function(it){
@@ -54,79 +59,114 @@ xfl = {
         return xhr.send();
       });
     };
-    this.fonts[path].sync = function(txt){
-      var hash, i$, to$, i, code, setIdx, k, this$ = this;
-      hash = {};
+    font.sync = function(txt){
+      var ref$, misschar, missset, i$, to$, i, code, setIdx, k, this$ = this;
+      if (this.nosync) {
+        return;
+      }
+      ref$ = [{}, {}], misschar = ref$[0], missset = ref$[1];
       for (i$ = 0, to$ = txt.length; i$ < to$; ++i$) {
         i = i$;
         code = txt.charCodeAt(i);
+        if (options.cjkOnly && !xfl.isCJK(code)) {
+          continue;
+        }
         setIdx = this.codeToSet[code.toString(16)];
         if (!setIdx) {
-          console.log("missing char: ", txt[i]);
+          misschar[txt[i]] = true;
         } else if (!this.hit[setIdx]) {
-          this.hit[setIdx] = true;
-          hash[setIdx] = true;
+          this.hit[setIdx] = missset[setIdx] = true;
         }
       }
-      return this.ajax((function(){
+      misschar = (function(){
         var results$ = [];
-        for (k in this.hit) {
+        for (k in misschar) {
           results$.push(k);
         }
         return results$;
-      }.call(this)), function(){
-        var css, idxlist, res$, k, i$, len$, idx, url, v, node;
-        css = "";
-        res$ = [];
-        for (k in this$.hit) {
-          res$.push(k);
+      }()).filter(function(it){
+        return it.trim();
+      });
+      if (misschar.length) {
+        console.log("not supported chars: " + misschar.join(''));
+      }
+      return this.ajax((function(){
+        var results$ = [];
+        for (k in missset) {
+          results$.push(k);
         }
-        idxlist = res$;
+        return results$;
+      }()), function(){
+        var k, ref$, css, idxlist, i$, len$, idx, url, names;
+        ref$ = [
+          "", (function(){
+            var results$ = [];
+            for (k in this.hit) {
+              results$.push(k);
+            }
+            return results$;
+          }.call(this$))
+        ], css = ref$[0], idxlist = ref$[1];
         for (i$ = 0, len$ = idxlist.length; i$ < len$; ++i$) {
           idx = idxlist[i$];
           url = this$.url[idx] || path + "/" + idx + ".woff2";
-          css += "@font-face {\n  font-family: " + name + "-" + idx + ";\n  src: url(" + url + ") format('woff2');\n}";
+          css += "@font-face {\n  font-family: " + name + ";\n  src: url(" + url + ") format('woff2');\n}";
         }
-        idxlist = idxlist.map(function(it){
+        names = idxlist.map(function(it){
           return name + "-" + it;
         }).join(',');
-        css += "." + this$.className + " { font-family: " + idxlist + "; }";
+        css += "." + this$.className + " { font-family: " + name + "; }";
         this$.css = css;
-        css = (function(){
-          var ref$, results$ = [];
-          for (k in ref$ = xfl.fonts) {
-            v = ref$[k];
-            results$.push(v.css || '');
-          }
-          return results$;
-        }()).join('\n');
-        node = xfl.node || document.createElement("style");
-        node.textContent = css;
-        if (xfl.node) {
-          return;
-        }
-        node.setAttribute('type', 'text/css');
-        document.body.appendChild(node);
-        return xfl.node = node;
+        return xfl.update();
       });
     };
-    xhr.addEventListener('readystatechange', function(){
-      var hash;
-      if (xhr.readyState !== 4) {
-        return;
-      }
-      hash = {};
-      xhr.responseText.split('\n').map(function(d, i){
-        return d.split(' ').map(function(e, j){
-          return hash[e] = i + 1;
-        });
-      });
-      this$.fonts[path].codeToSet = hash;
+    if (font.ext) {
+      font.nosync = true;
+      format = font.ext && font.ext !== 'ttf' ? "format('" + font.ext + "')" : '';
+      font.css = "@font-face {\n  font-family: " + name + ";\n  src: url(" + path + ") " + format + ";\n}\n." + font.className + " { font-family: \"" + name + "\"; }";
+      xfl.update();
       if (cb) {
-        return cb(this$.fonts[path]);
+        return cb(font);
       }
-    });
-    xhr.open('GET', path + "/charmap.txt");
-    return xhr.send();
+    } else {
+      xhr = new XMLHttpRequest();
+      xhr.addEventListener('readystatechange', function(){
+        var hash;
+        if (xhr.readyState !== 4) {
+          return;
+        }
+        hash = {};
+        xhr.responseText.split('\n').map(function(d, i){
+          return d.split(' ').map(function(e, j){
+            return hash[e] = i + 1;
+          });
+        });
+        font.codeToSet = hash;
+        if (cb) {
+          return cb(font);
+        }
+      });
+      xhr.open('GET', path + "/charmap.txt");
+      return xhr.send();
+    }
+  },
+  update: function(){
+    var css, k, v, node;
+    css = (function(){
+      var ref$, results$ = [];
+      for (k in ref$ = xfl.fonts) {
+        v = ref$[k];
+        results$.push(v.css || '');
+      }
+      return results$;
+    }()).join('\n');
+    node = xfl.node || document.createElement("style");
+    node.textContent = css;
+    if (xfl.node) {
+      return;
+    }
+    node.setAttribute('type', 'text/css');
+    document.body.appendChild(node);
+    return xfl.node = node;
   }
 };

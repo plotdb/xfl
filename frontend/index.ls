@@ -38,7 +38,7 @@ xfl = do
         xhr.responseType = \blob
         xhr.send!
 
-    font.sync = (txt = "") ->
+    font.sync = (txt = "", cb) ->
       if @nosync => return # fonts with file extension will be treated as needing directly download
       [misschar, missset]= [{}, {}]
       for i from 0 til txt.length =>
@@ -63,6 +63,7 @@ xfl = do
       css += ".#{@className} { font-family: #name; }"
       @css = css
       xfl.update!
+      if cb => cb!
 
     if font.ext => # load directly if path has extension ...
       font.nosync = true

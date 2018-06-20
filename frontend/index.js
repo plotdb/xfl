@@ -59,7 +59,7 @@ xfl = {
         return xhr.send();
       });
     };
-    font.sync = function(txt){
+    font.sync = function(txt, cb){
       var ref$, misschar, missset, i$, to$, i, code, setIdx, k, this$ = this;
       txt == null && (txt = "");
       if (this.nosync) {
@@ -118,7 +118,10 @@ xfl = {
         }).join(',');
         css += "." + this$.className + " { font-family: " + name + "; }";
         this$.css = css;
-        return xfl.update();
+        xfl.update();
+        if (cb) {
+          return cb();
+        }
       });
     };
     if (font.ext) {

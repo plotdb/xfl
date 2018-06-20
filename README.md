@@ -5,7 +5,7 @@ xl-fontload
 
  * 字頻檔 ( word-frequency.csv )
    示範檔來源: [教育部](http://language.moe.gov.tw/001/Upload/files/SITE_CONTENT/M0001/86NEWS/download/86rest17.TXT)
- * 列舉轉換字型. 放置在 fonts/ 目錄, 結構不拘. 自動搜尋所有 .otf / .ttf 結尾檔案.
+ * 列舉轉換字型. 放置在 fonts/ 目錄, 結構不拘. 自動搜尋所有 .ttf 結尾檔案.
  * 針對每一字型:
    * 列舉所有支援字符
    * 其中常用五百字、標點符號、英文字母、數字等，做為第一字型檔

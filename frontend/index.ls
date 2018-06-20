@@ -38,7 +38,7 @@ xfl = do
         xhr.responseType = \blob
         xhr.send!
 
-    font.sync = (txt) ->
+    font.sync = (txt = "") ->
       if @nosync => return # fonts with file extension will be treated as needing directly download
       [misschar, missset]= [{}, {}]
       for i from 0 til txt.length =>

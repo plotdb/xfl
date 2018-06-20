@@ -61,6 +61,7 @@ xfl = {
     };
     font.sync = function(txt){
       var ref$, misschar, missset, i$, to$, i, code, setIdx, k, this$ = this;
+      txt == null && (txt = "");
       if (this.nosync) {
         return;
       }

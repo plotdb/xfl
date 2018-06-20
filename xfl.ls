@@ -39,7 +39,8 @@ xfl = do
         xhr.send!
 
     font.sync = (txt = "", cb) ->
-      if @nosync => return # fonts with file extension will be treated as needing directly download
+      # fonts with file extension will be treated as needing directly download
+      if @nosync => return (if cb => cb! else '')
       [misschar, missset]= [{}, {}]
       for i from 0 til txt.length =>
         code = txt.charCodeAt(i)

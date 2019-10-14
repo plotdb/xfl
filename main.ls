@@ -1,13 +1,14 @@
 require! <[fs fs-extra fontmin opentype.js path colors progress gulp-rename bluebird ttf2woff2]>
 
+font-dir = if !process.argv.2 => \fonts else process.argv.2
 Promise = bluebird
 
 common-ranges = [[0,0xff], [0xff00, 0xffef]]
 common-size = 1000
 set-size = 50
 
-if !fs.exists-sync 'fonts' =>
-  console.log "fonts/ directory not found."
+if !fs.exists-sync font-dir =>
+  console.log "#font-dir directory not found."
   process.exit -1
 
 progress-bar = (total = 10, text = "converting") ->
@@ -47,7 +48,7 @@ code-in-font = (font) -> new Promise (res, rej) ->
       ret = ret ++ glyph.unicodes
     res ret
 
-files = font-file-finder 'fonts'
+files = font-file-finder font-dir
 wordlist = word-frequency!
 
 subset-font = (data) -> new Promise (res, rej) ->

@@ -1,6 +1,7 @@
 {
   "author": "Kirby Wu",
   "name": "xl-fontload",
+  "license": "MIT",
   "description": "make quick and dynamic CJK web font",
   "version": "0.0.1",
   "homepage": "https://github.com/plotdb/xl-fontload",
@@ -12,8 +13,15 @@
     "node": ">=8.5.0",
     "npm": ">=5.3.0"
   },
+  "scripts": {
+    "start": "cd web; ../node_modules/.bin/lsc ../node_modules/template/server.ls",
+    "build": "cd tool; ../node_modules/.bin/lsc ./build.ls"
+  },
   "dependencies": {
     "LiveScript": ">=1.2.0",
+    "stylus": "^0.54.5",
+    "uglify-js": "=3.2.0",
+    "uglifycss": "0.0.29",
     "colors": "=1.1.2",
     "fontmin": "=0.9.7-beta",
     "fs-extra": "^6.0.1",
@@ -21,6 +29,7 @@
     "hoek": "^4.2.1",
     "opentype.js": "=0.8.0",
     "progress": "=2.0.0",
-    "ttf2woff2": "^2.0.3"
+    "ttf2woff2": "^2.0.3",
+    "template": "github:zbryikt/template#v2"
   }
 }

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+mkdir -p dist
+echo "build src/xfl.ls -> dist/xfl.js ..."
+./node_modules/.bin/lsc -cbp src/xfl.ls > dist/xfl.js
+echo "minifying xfl.js ..."
+./node_modules/.bin/uglifyjs dist/xfl.js > dist/xfl.min.js
+echo "deploy into local web ..."
+mkdir -p web/static/assets/lib/
+cp -R dist/* web/static/assets/lib/
+echo "done."

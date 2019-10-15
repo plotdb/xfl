@@ -1,6 +1,7 @@
 require! <[fs fs-extra fontmin opentype.js path colors progress gulp-rename bluebird ttf2woff2]>
 
-font-dir = if !process.argv.2 => \fonts else process.argv.2
+font-dir = if !process.argv.2 => \../fonts else process.argv.2
+out-dir = "../output"
 Promise = bluebird
 
 common-ranges = [[0,0xff], [0xff00, 0xffef]]
@@ -44,8 +45,10 @@ code-in-font = (font) -> new Promise (res, rej) ->
     glyphs = font.glyphs.glyphs
     for i from 0 til font.glyphs.length
       glyph = glyphs[i]
-      if !glyph or !glyph.unicode => continue
-      ret = ret ++ glyph.unicodes
+      if !(glyph and glyph.unicode) => continue
+      # while this should be checked, it cause out of memory bug
+      # if !glyph.xMax => continue
+      ret ++= glyph.unicodes
     res ret
 
 files = font-file-finder font-dir
@@ -56,7 +59,7 @@ subset-font = (data) -> new Promise (res, rej) ->
     {filename, basename, set-idx, codes} = data{filename, basename, set-idx, codes}
     fm  = new fontmin!src filename
     if /\.otf$/.exec(filename) => fm.use fontmin.otf2ttf!
-    fm.dest "assets/#basename"
+    fm.dest path.join(out-dir, basename)
       .use gulp-rename("#set-idx.ttf")
       .use fontmin.glyph text: codes.map(-> String.fromCharCode(it)).join('')
       .run (e, f) ->
@@ -100,10 +103,10 @@ iterate-codes = (data) -> new Promise (res, rej) ->
 
 ttf-to-woff2s = (data) -> new Promise (res, rej) ->
   try
-    ttfs = fs.readdir-sync "assets/#{data.basename}"
+    ttfs = fs.readdir-sync path.join(out-dir, data.basename)
       .filter -> /\.ttf$/.exec(it)
       .filter -> !/all/.exec(it)
-      .map -> "assets/#{data.basename}/#it"
+      .map -> path.join(out-dir, data.basename, it)
     bar = progress-bar ttfs.length, "converting"
     _ = ->
       if !ttfs or !ttfs.length =>
@@ -135,7 +138,7 @@ process-font = (filename) -> new Promise (res, rej) ->
       iterate-codes data
     .then (data) ->
       console.log "   - subsetted into #{data.set-idx} pieces."
-      fs-extra.copy-sync filename, "assets/#{data.basename}/all.ttf"
+      fs-extra.copy-sync filename, path.join(out-dir, data.basename, "all.ttf")
       data.bar.tick data.list.length
       console.log "   - converting to woff2..."
       ttf-to-woff2s data
@@ -149,7 +152,7 @@ process-font = (filename) -> new Promise (res, rej) ->
       idx-map = {}
       for k,v of data.code-to-set => idx-map[][v].push k.toString(16)
       charmap = [v for k,v of idx-map].map(->it.join(' ')).join('\n')
-      fs.write-file-sync "assets/#{data.basename}/charmap.txt", charmap
+      fs.write-file-sync path.join(out-dir, data.basename, "charmap.txt"), charmap
       console.log "   - process done. ".green
       console.log " "
       return res!

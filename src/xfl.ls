@@ -12,17 +12,19 @@ xfl = do
       (if typeof(options) == 'function' => options else callback)
     ]
     if @fonts[path] => return (if cb => cb @fonts[path] else null)
+    # backward compatibility; remove this once we confirmed that there is not font-name used when calling API.
+    if options.font-name => options.name = options.font-name
     [ext, name, slug] = [
-      ((options.ext or /\.([a-zA-Z0-9]+)$/.exec(path) or []).1 or '').toLowerCase!,
-      options.font-name or (path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1]),
-      (options.font-name or Math.random!toString(16).substring(2))
+      (options.ext or (/\.([a-zA-Z0-9]+)$/.exec(path) or []).1 or '').toLowerCase!,
+      options.name or (path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1]),
+      (options.name or Math.random!toString(16).substring(2))
     ]
-    family = options.family or (if ~name.indexOf('-') => name.split('-')[* - 1] else 'Regular')
-    if !(family in xfl.variants) => family = \Regular
+    variant = options.variant or (if ~name.indexOf('-') => name.split('-')[* - 1] else 'Regular')
+    if !(variant in xfl.variants) => variant = \Regular
     @fonts[path] = font = do
       name: name
       path: path
-      family: family
+      variant: variant
       options: options
       className: "xfl-#slug"
       code-to-set: {}  # convert unicode to the set idx that contains this code. load from charmap.txt

@@ -7,7 +7,7 @@ xfl = {
     return (code >= 0xff00 && code <= 0xffef) || (code >= 0x4e00 && code <= 0x9fff);
   },
   load: function(path, options, callback){
-    var ref$, cb, ext, name, slug, family, font, format, xhr, this$ = this;
+    var ref$, cb, ext, name, slug, variant, font, format, xhr, this$ = this;
     options == null && (options = {});
     if (!path) {
       return;
@@ -16,26 +16,28 @@ xfl = {
     if (this.fonts[path]) {
       return cb ? cb(this.fonts[path]) : null;
     }
+    if (options.fontName) {
+      options.name = options.fontName;
+    }
     ref$ = [
-      ((options.ext || /\.([a-zA-Z0-9]+)$/.exec(path) || [])[1] || '').toLowerCase(), options.fontName || (ref$ = path.replace(/\.[a-zA-Z0-9]+$/, '').split("/").filter(function(it){
+      (options.ext || (/\.([a-zA-Z0-9]+)$/.exec(path) || [])[1] || '').toLowerCase(), options.name || (ref$ = path.replace(/\.[a-zA-Z0-9]+$/, '').split("/").filter(function(it){
         return it;
-      }))[ref$.length - 1], options.fontName || Math.random().toString(16).substring(2)
+      }))[ref$.length - 1], options.name || Math.random().toString(16).substring(2)
     ], ext = ref$[0], name = ref$[1], slug = ref$[2];
-    family = options.family || (~name.indexOf('-') ? (ref$ = name.split('-'))[ref$.length - 1] : 'Regular');
-    if (!in$(family, xfl.variants)) {
-      family = 'Regular';
+    variant = options.variant || (~name.indexOf('-') ? (ref$ = name.split('-'))[ref$.length - 1] : 'Regular');
+    if (!in$(variant, xfl.variants)) {
+      variant = 'Regular';
     }
     this.fonts[path] = font = {
       name: name,
       path: path,
-      family: family,
+      variant: variant,
       options: options,
       className: "xfl-" + slug,
       codeToSet: {},
       hit: {},
       url: {},
-      ext: ext && ~['woff2', 'woff', 'eot', 'ttf', 'otf'].indexOf(ext) ? ext : null,
-      fromBlob: !!/^blob:/.exec(path)
+      ext: ext && ~['woff2', 'woff', 'eot', 'ttf', 'otf'].indexOf(ext) ? ext : null
     };
     font.ajax = function(idxlist, cb){
       var check, this$ = this;

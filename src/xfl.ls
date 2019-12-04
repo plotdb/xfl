@@ -1,7 +1,10 @@
 xfl = do
+  variants: <[Italic Regular Bold ExtraBold Medium SemiBold ExtraLight Light Thin Black BlackItalic BoldItalic ExtraBoldItalic MediumItalic LightItalic ThinItalic SemiBoldItalic ExtraLightItalic DemiBold Heavy UltraLight]>
   fonts: {}
   # TODO lets add a more accurate range
   isCJK: -> ((code >= 0xff00 and code <= 0xffef) or (code >= 0x4e00 and code <= 0x9fff))
+  # load font from path. will resolve information from path,
+  # if failed to resolve, user can still supply options for alternative information.
   load: (path, options={}, callback) ->
     if !path => return
     [path, cb] = [
@@ -10,13 +13,16 @@ xfl = do
     ]
     if @fonts[path] => return (if cb => cb @fonts[path] else null)
     [ext, name, slug] = [
-      ((/\.([a-zA-Z0-9]+)$/.exec(path) or []).1 or '').toLowerCase!,
+      ((options.ext or /\.([a-zA-Z0-9]+)$/.exec(path) or []).1 or '').toLowerCase!,
       options.font-name or (path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1]),
       (options.font-name or Math.random!toString(16).substring(2))
     ]
+    family = options.family or (if ~name.indexOf('-') => name.split('-')[* - 1] else 'Regular')
+    if !(family in xfl.variants) => family = \Regular
     @fonts[path] = font = do
       name: name
       path: path
+      family: family
       options: options
       className: "xfl-#slug"
       code-to-set: {}  # convert unicode to the set idx that contains this code. load from charmap.txt

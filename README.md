@@ -81,6 +81,10 @@ Options:
    * 上述的對抗式生成網路亦可用於協助新字型生成。
  * 其它
    * 設定參數化，在建立字型檔時可透過設定依自己的需求客製化字型集。
+ * Google Font 已實作類似的技術用以載入中文字型. 請參見:
+   - https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/webfont-optimization
+   - 範例 CSS:
+     - https://fonts.googleapis.com/css?family=Zhi-Mang-Xing&display=swap
 
 
 LICENSE

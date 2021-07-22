@@ -11,7 +11,7 @@ xfont = (opt = {}) ->
   @path = opt.path
   @name = opt.name or (@path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1])
   @style = 'normal'
-  @ext = (opt.ext or (/\.([a-zA-Z0-9]+)$/.exec(@path) or []).1 or '')
+  @ext = (opt.ext or (/\.(ttf|otf|woff2|woff)$/.exec(@path) or []).1 or '')
   @format = if @ext.toLowerCase! =>
     if that == 'ttf' => 'truetype'
     else if that == 'otf' => 'truetype'
@@ -20,7 +20,7 @@ xfont = (opt = {}) ->
   if @format => @format = "format('#{@format}')"
   @className = "xfl-#{@name}-#{Math.random!toString(36)substring(2)}"
   @is-xl = !@ext
-  @css = ''
+  @css = []
   @init = proxise.once ~> @_init!
   @init!
   @
@@ -30,12 +30,12 @@ xfont.prototype = Object.create(Object.prototype) <<< do
     Promise.resolve!then ~>
       # not xlfont but regular font. load directly.
       if !@is-xl =>
-        @css = """
+        @css = [{content: """
         @font-face {
           font-family: #{@name};
           src: url(#{@path}) #{@format};
         }
-        .#{@className} { font-family: "#{@name}"; }"""
+        .#{@className} { font-family: "#{@name}"; }"""}]
       else return new Promise (res, rej) ~>
         xhr = new XMLHttpRequest!
         xhr.addEventListener \readystatechange, ~>
@@ -88,14 +88,16 @@ xfont.prototype = Object.create(Object.prototype) <<< do
         @sub.font[it] = f = {key: it}
         @_fetch f, dofetch
     Promise.all ps
-      .then ~>
+      .then (subfonts) ~>
+        if !subfonts.length => return
         css = ".#{@className} { font-family: #{@name}; }"
         for k,f of @sub.font =>
+        for f in subfonts =>
           css += """@font-face {
             font-family: #{@name};
             src: url(#{f.url}) format('#{f.type}');
           }"""
-        @css = css
+        @css.push {content: css}
 
   getotf: ->
     if !(opentype?) =>
@@ -103,7 +105,7 @@ xfont.prototype = Object.create(Object.prototype) <<< do
     if !@otf.dirty => return Promise.resolve(@otf.font)
     Promise.resolve!
       .then ~> if !@is-xl => return @fetch! else @fetch-all!
-      .then ~> 
+      .then ~>
         ps = [f for k,f of @sub.font] .map (f) ->
           if f.otf => Promise.resolve(f)
           else opentype.load f.url .then -> f.otf = it; f
@@ -111,7 +113,7 @@ xfont.prototype = Object.create(Object.prototype) <<< do
       .then (list = []) ~>
         if list.length == 1 => return list.0.otf
         glyphs = list
-          .map (f) -> 
+          .map (f) ->
             glyphs = f.otf.glyphs
             [glyphs.glyphs[i] for i from 1 to glyphs.length]
           .reduce(((a,b) -> a ++ b), [])
@@ -141,7 +143,8 @@ xfont.prototype = Object.create(Object.prototype) <<< do
         misschar := [k for k of misschar].filter(->it.trim!)
         if misschar.length =>
           console.log "[@plotdb/xfl] sync xl-font with following chars unsupported: #{misschar.join('')}"
-        @fetch [k for k of missset]
+        list = [k for k of missset]
+        if list.length => @fetch list
       .then -> xfl.update!
 
 xfl = do
@@ -156,17 +159,22 @@ xfl = do
   proxy: {}
 
   update: ->
-    css = [(v.css or '') for k,v of @fonts].join('\n')
-    node = @node or document.createElement("style")
-    node.textContent = css
-    if @node => return
-    node.setAttribute \type, 'text/css'
-    document.body.appendChild node
-    @node = node
+    css = ""
+    for k,v of @fonts =>
+      (v.css or [])
+        .filter -> !it.rendered
+        .map ->
+          it.rendered = true
+          css += it.content
+    if css =>
+      node = document.createElement("style")
+      node.textContent = css
+      node.setAttribute \type, 'text/css'
+      document.body.appendChild node
 
   # load font from path. will resolve information from path,
   # if failed to resolve, user can still supply options for alternative information.
-  _load: (opt = {}) -> 
+  _load: (opt = {}) ->
     {path} = opt
     if @running[path] => return
     @running[path] = true

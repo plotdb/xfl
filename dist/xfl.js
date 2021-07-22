@@ -25,7 +25,7 @@
       return it;
     }))[ref$.length - 1];
     this.style = 'normal';
-    this.ext = opt.ext || (/\.([a-zA-Z0-9]+)$/.exec(this.path) || [])[1] || '';
+    this.ext = opt.ext || (/\.(ttf|otf|woff2|woff)$/.exec(this.path) || [])[1] || '';
     this.format = (that = this.ext.toLowerCase()) ? that === 'ttf'
       ? 'truetype'
       : that === 'otf' ? 'truetype' : that : '';
@@ -34,7 +34,7 @@
     }
     this.className = "xfl-" + this.name + "-" + Math.random().toString(36).substring(2);
     this.isXl = !this.ext;
-    this.css = '';
+    this.css = [];
     this.init = proxise.once(function(){
       return this$._init();
     });
@@ -46,7 +46,9 @@
       var this$ = this;
       return Promise.resolve().then(function(){
         if (!this$.isXl) {
-          return this$.css = "@font-face {\n  font-family: " + this$.name + ";\n  src: url(" + this$.path + ") " + this$.format + ";\n}\n." + this$.className + " { font-family: \"" + this$.name + "\"; }";
+          return this$.css = [{
+            content: "@font-face {\n  font-family: " + this$.name + ";\n  src: url(" + this$.path + ") " + this$.format + ";\n}\n." + this$.className + " { font-family: \"" + this$.name + "\"; }"
+          }];
         } else {
           return new Promise(function(res, rej){
             var xhr;
@@ -175,14 +177,22 @@
         };
         return this$._fetch(f, dofetch);
       });
-      return Promise.all(ps).then(function(){
-        var css, k, ref$, f;
+      return Promise.all(ps).then(function(subfonts){
+        var css, k, ref$, f, i$, len$;
+        if (!subfonts.length) {
+          return;
+        }
         css = "." + this$.className + " { font-family: " + this$.name + "; }";
         for (k in ref$ = this$.sub.font) {
           f = ref$[k];
+        }
+        for (i$ = 0, len$ = subfonts.length; i$ < len$; ++i$) {
+          f = subfonts[i$];
           css += "@font-face {\n  font-family: " + this$.name + ";\n  src: url(" + f.url + ") format('" + f.type + "');\n}";
         }
-        return this$.css = css;
+        return this$.css.push({
+          content: css
+        });
       });
     },
     getotf: function(){
@@ -258,7 +268,7 @@
       }
       ref$ = [{}, {}], misschar = ref$[0], missset = ref$[1];
       return Promise.resolve().then(function(){
-        var i$, to$, i, code, setIdx, k;
+        var i$, to$, i, code, setIdx, k, list, res$;
         for (i$ = 0, to$ = txt.length; i$ < to$; ++i$) {
           i = i$;
           code = txt.charCodeAt(i);
@@ -284,13 +294,14 @@
         if (misschar.length) {
           console.log("[@plotdb/xfl] sync xl-font with following chars unsupported: " + misschar.join(''));
         }
-        return this$.fetch((function(){
-          var results$ = [];
-          for (k in missset) {
-            results$.push(k);
-          }
-          return results$;
-        }()));
+        res$ = [];
+        for (k in missset) {
+          res$.push(k);
+        }
+        list = res$;
+        if (list.length) {
+          return this$.fetch(list);
+        }
       }).then(function(){
         return xfl.update();
       });
@@ -309,6 +320,27 @@
     },
     proxy: {},
     update: function(){
+      var css, k, ref$, v, node;
+      css = "";
+      for (k in ref$ = this.fonts) {
+        v = ref$[k];
+        (v.css || []).filter(fn$).map(fn1$);
+      }
+      if (css) {
+        node = document.createElement("style");
+        node.textContent = css;
+        node.setAttribute('type', 'text/css');
+        return document.body.appendChild(node);
+      }
+      function fn$(it){
+        return !it.rendered;
+      }
+      function fn1$(it){
+        it.rendered = true;
+        return css += it.content;
+      }
+    },
+    _update: function(){
       var css, k, v, node;
       css = (function(){
         var ref$, results$ = [];

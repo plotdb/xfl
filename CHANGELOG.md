@@ -7,3 +7,4 @@
  - non-xl-font aware
  - better support for concurrent fetching
  - support promise in all api
+ - use SIL-Open Licensed fonts only for demonstration

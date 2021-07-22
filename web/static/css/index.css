@@ -10,6 +10,9 @@ h2,
 h3 {
   color: #000;
 }
+textarea::placeholder {
+  color: #b5b9bc !important;
+}
 #root {
   margin: 20px auto;
   padding: 20px 0 60px;

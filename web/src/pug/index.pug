@@ -4,6 +4,7 @@ include @/bootstrap.ldui/dist/index.pug
 //-- var featurefonts = ["瀨戶字体", "衡山毛筆", "王漢宗粗鋼體", "王漢宗綜藝體", "王漢宗波浪體"];
 -
   var fontlist = [
+    ["Fontworks"],
     ["DotGothic16", "DotGothic16-Regular", "8231"],
     ["KleeOne / SemiBold", "KleeOne-SemiBold", "10178"],
     ["KleeOne", "KleeOne-Regular", "10178"],
@@ -13,6 +14,7 @@ include @/bootstrap.ldui/dist/index.pug
     ["RocknRollOne", "RocknRollOne-Regular", "8230"],
     ["TrainOne", "TrainOne-Regular", "4356"],
 
+    ["Google x Adobe"],
     ["思源宋體 / 極細", "NotoSerifCJKtc-ExtraLight"],
     ["思源宋體 / 細", "NotoSerifCJKtc-Light"],
     ["思源宋體", "NotoSerifCJKtc-Regular"],
@@ -21,18 +23,27 @@ include @/bootstrap.ldui/dist/index.pug
     ["思源宋體 / 粗", "NotoSerifCJKtc-Bold"],
     ["思源宋體 / 濃", "NotoSerifCJKtc-Black"],
 
+    ["cjkFonts x 清松手寫體"],
     ["cjk手寫4", "cjk手寫4", "12201"],
+
+    ["justfont"],
     ["粉圓體", "openhuninn-1.1", "9676"],
+
+    ["翰字鑄造JT Foundry"],
     ["台北黑體 / 粗", "TaipeiSansTCBeta-Bold", "32732"],
     ["台北黑體", "TaipeiSansTCBeta-Regular", "32731"],
-    ["台北黑體 / 細", "TaipeiSansTCBeta-Bold", "32762"],
-    ["花圓明朝A", "HanaminA", "41494"],
-    ["花圓明朝B", "HanaminB", "60418"],
-    ["內海字體 / Bold", "NaikaiFont-Bold", 46817],
-    ["內海字體 / SemiBold", "NaikaiFont-SemiBold", 46817],
-    ["內海字體", "NaikaiFont-Regular", 46817],
-    ["內海字體 / Light", "NaikaiFont-Light", 46817],
-    ["內海字體 / ExtraLight", "NaikaiFont-ExtraLight", 46817],
+    ["台北黑體 / 細", "TaipeiSansTCBeta-Light", "32762"],
+
+    ["GlyphWiki"],
+    ["花園明朝A", "HanaminA", "41494"],
+    ["花園明朝B", "HanaminB", "60418"],
+
+    ["瀨戶家族 x Max"],
+    ["內海字體 / 粗", "NaikaiFont-Bold", 46817],
+    ["內海字體 / 次粗", "NaikaiFont-SemiBold", 46817],
+    ["內海字體", "NaikaiFont-Regular", 46819],
+    ["內海字體 / 細", "NaikaiFont-Light", 46817],
+    ["內海字體 / 極細", "NaikaiFont-ExtraLight", 46817],
   ]
 -
   var featurefonts = [
@@ -96,11 +107,16 @@ html
       .dropdown(style="display:inline-block;vertical-align:top")
         .btn.btn-outline-dark.dropdown-toggle(data-toggle="dropdown") More
         .dropdown-menu.shadow-sm(style="max-height:400px;overflow:scroll")
-          each font in fontlist
-            a.dropdown-item.d-flex.align-items-center(href="#",data-font=font[1])
-              .flex-grow-1= font[0]
-              if font[2]
-                small.text-muted.ml-2 #{font[2]}字
+          each font,$index in fontlist
+            if font.length > 1
+              a.dropdown-item.d-flex.align-items-center(href="#",data-font=font[1])
+                .flex-grow-1= font[0]
+                if font[2]
+                  small.text-muted.ml-2 #{font[2]}字
+            else
+              if $index != 0
+                .dropdown-divider
+              .dropdown-header.text-underline= font[0]
           //-each font in enlist
             a.dropdown-item(href="#",data-font=font,data-type="en")= font
       .flex-grow-1.text-right
@@ -115,7 +131,7 @@ html
       li 中文字型切割工具
       li 中文字型載入模組
     p 先使用切割工具將字型檔依字頻切成小塊後，再使用載入器根據網頁內容選擇需要載入的字型子集，因此我們可以快速的選取想要的字型，套用在網站上。切割過後的字型亦可搭配 #[code opentype.js] 於前、後端進行字型組合。
-    p 另一方面，此專案亦收集了十來以 #[code SIL Open Font License 1.1] 釋出的免費、可商用開放中文字型，亦提供預先切割好的字型模組，可直接分支使用，不需再花時間自行搜集處理。
+    p 另一方面，此專案亦收集了十套來以 #[code SIL Open Font License 1.1] 釋出的免費、可商用開放中文字型，包含黑、宋、圓、手寫、風格等類型的字體，亦提供預先切割好的字型模組，可直接分支使用，不需再花時間自行搜集處理。
     br
     h2 我要怎麼取得？
     p 此專案託管於 #[a(href="https://github.com/plotdb/xfl") Github 專案庫] ，您可以造訪該網址並利用 Git 分支，或者直接下載整包模組。

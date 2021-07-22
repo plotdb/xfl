@@ -4,6 +4,7 @@ xfont = (opt = {}) ->
   @opt = opt
   @sub = {set: {}, font: {}}
   @cjk-only = opt.cjk-only or false
+  @codemap = {}
   @otf =
     font: null   # opentype.js font object
     dirty: true  # true if we need to re-generate
@@ -21,11 +22,12 @@ xfont = (opt = {}) ->
   @is-xl = !@ext
   @css = ''
   @init = proxise.once ~> @_init!
+  @init!
   @
 
 xfont.prototype = Object.create(Object.prototype) <<< do
   _init: ->
-    Promise.resolve!then ->
+    Promise.resolve!then ~>
       # not xlfont but regular font. load directly.
       if !@is-xl =>
         @css = """
@@ -39,7 +41,6 @@ xfont.prototype = Object.create(Object.prototype) <<< do
         xhr.addEventListener \readystatechange, ~>
           if xhr.readyState != XMLHttpRequest.DONE => return
           if xhr.status != 200 => return rej err {code: xhr.status, message: xhr.responseText}
-          @codemap = {}
           (xhr.responseText or '')
             .split(\\n)
             .map (d,i) ~> d.split(' ').map (e,j) ~> @codemap[e] = (i + 1)
@@ -73,6 +74,9 @@ xfont.prototype = Object.create(Object.prototype) <<< do
       p.finally -> f.running = false
     f.proxy f
 
+  fetch-all: ->
+    if @is-xl => Promise.all([f for k,f of @sub.font].map ~> @_fetch it, true)
+    else @_fetch @sub.font[0], true
   fetch: (list = [], dofetch = false) ->
     if !@is-xl =>
       if @sub.font[0].blob => return Promise.resolve!
@@ -81,7 +85,7 @@ xfont.prototype = Object.create(Object.prototype) <<< do
     ps = Array.from new Set(list.map -> it)
       .filter ~> !@sub.font[it]
       .map ~>
-        @sub.font[it.key] = f = {key: it.key}
+        @sub.font[it] = f = {key: it}
         @_fetch f, dofetch
     Promise.all ps
       .then ~>
@@ -98,7 +102,7 @@ xfont.prototype = Object.create(Object.prototype) <<< do
       return Promise.reject err({id: 1022, message: "[@plotdb/xfl] need opentype.js to merge subfonts"})
     if !@otf.dirty => return Promise.resolve(@otf.font)
     Promise.resolve!
-      .then ~> if !@is-xl => return @fetch!
+      .then ~> if !@is-xl => return @fetch! else @fetch-all!
       .then ~> 
         ps = [f for k,f of @sub.font] .map (f) ->
           if f.otf => Promise.resolve(f)
@@ -112,11 +116,15 @@ xfont.prototype = Object.create(Object.prototype) <<< do
             [glyphs.glyphs[i] for i from 1 to glyphs.length]
           .reduce(((a,b) -> a ++ b), [])
           .filter -> it
-        return @otf.font = new opentype.Font({
+        @otf.font = new opentype.Font({
           familyName: @name
           styleName: @style or 'normal'
           glyphs: glyphs
         } <<< list.0.otf{unitsPerEm, ascender, descender})
+        # workaround: opentype.js seems to not init kerningPairs well for manually constructed font.
+        # but we can still do it ourselves.
+        @otf.font.kerningPairs = {}
+        return @otf.font
 
   sync: (txt = "") ->
     if !@is-xl => return Promise.resolve!
@@ -128,11 +136,13 @@ xfont.prototype = Object.create(Object.prototype) <<< do
           if @cjk-only and !xfl.isCJK(code) => continue
           set-idx = @codemap[code.toString 16]
           if !set-idx => misschar[txt[i]] = true
-          else if !@hit[set-idx] => @hit[set-idx] = missset[set-idx] = true
+          # TODO we should set @sub.set[set-idx] to true only if it's successfully fetched.
+          else if !@sub.set[set-idx] => @sub.set[set-idx] = missset[set-idx] = true
         misschar := [k for k of misschar].filter(->it.trim!)
         if misschar.length =>
           console.log "[@plotdb/xfl] sync xl-font with following chars unsupported: #{misschar.join('')}"
         @fetch [k for k of missset]
+      .then -> xfl.update!
 
 xfl = do
   range:
@@ -143,6 +153,7 @@ xfl = do
   fonts: {}
   running: {}
   isCJK: (code) -> @range.CJK.filter(-> code >= it.0 and code <= it.1).length
+  proxy: {}
 
   update: ->
     css = [(v.css or '') for k,v of @fonts].join('\n')
@@ -160,19 +171,23 @@ xfl = do
     if @running[path] => return
     @running[path] = true
     Promise.resolve!
-      .then ~> @fonts[path] = fobj = new xfont opt
+      .then ~>
+        @fonts[path] = fobj = new xfont opt
+        fobj.init!
       .finally ~> @running[path] = false
-      .then ~> @proxy[path].resolve it
+      .then ~>
+        @proxy[path].resolve @fonts[path]
+        @fonts[path]
       .catch ~> @proxy[path].reject it
 
   load: (opt = {}) -> new Promise (res, rej) ~>
     if !(path = opt.path) => return rej err({id: 400})
     path = path.replace(/\/$/,'')
     if @fonts[path] => return res(that)
-    if @proxy[path] => @proxy[path].push proxise ~> @_load it
+    if !@proxy[path] => @proxy[path] = proxise ~> @_load it
     @proxy[path]({} <<< opt <<< {path})
       .then -> res it
-      .catch -> resj it
+      .catch -> rej it
 
 if module? => module.exports = xfl
 else if window? => window.xfl = xfl

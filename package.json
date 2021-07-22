@@ -29,12 +29,17 @@
     "template": "github:zbryikt/template#v2.3.13",
     "bootstrap": "^4.5.3",
     "bootstrap.ldui": "github:loadingio/bootstrap.ldui",
+    "bootstrap.native": "^3.0.13",
     "@loadingio/debounce.js": "0.0.1",
     "@loadingio/ldquery": "^2.0.0",
+    "@loadingio/loading.css": "^2.0.1",
+    "ldcover": "^1.3.2",
+    "ldloader": "^1.2.1",
+    "ldbutton": "^1.0.2",
     "ldview": "^0.2.0"
   },
   "peerDependencies": {
-    "opentype.js": "^0.8.0",
+    "opentype.js": "^1.3.3",
     "proxise": "^0.1.2"
   },
   "frontendDependencies": {
@@ -42,9 +47,15 @@
     "modules": [
       "bootstrap",
       "bootstrap.ldui",
+      "bootstrap.native",
       "@loadingio/ldquery",
       "@loadingio/debounce.js",
+      "@loadingio/loading.css",
       "ldview",
+      "ldcover",
+      "ldloader",
+      "ldbutton",
+      "opentype.js",
       "proxise"
     ]
   }

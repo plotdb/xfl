@@ -2,7 +2,6 @@ doctype html
 include @/bootstrap.ldui/dist/index.pug
 - var fontlist = ["851手書き雑フォント","中楷體","瀨戶字体","花園明朝","中仿宋體","刻石錄明體","站酷快乐体2016修订版","衡山毛筆","中圓體","刻石錄鋼筆鶴體","站酷高端黑体修订2015","中明體","刻石錄顏體","粗黑體","王漢宗中魏碑簡體","王漢宗仿宋體","王漢宗粗鋼體","王漢宗粗黑體實陰","王漢宗標楷體空心","王漢宗正海報","王漢宗細新宋簡體","王漢宗中明注音體","王漢宗波卡體空陰","王漢宗細明","王漢宗中明破音字1","王漢宗波浪體","王漢宗細黑","王漢宗中明破音字2","王漢宗海報體半天水","王漢宗中明破音字3","王漢宗中楷注音體","王漢宗超明","王漢宗中楷破音字1","王漢宗超黑俏皮動物","王漢宗中楷破音字2","王漢宗特黑","王漢宗酷儷海報","王漢宗中楷破音字3","王漢宗鋼筆行楷","王漢宗粗圓體雙空","王漢宗顏體"];
 - var featurefonts = ["瀨戶字体", "衡山毛筆", "王漢宗粗鋼體", "王漢宗綜藝體", "王漢宗波浪體"];
-
 html
   head
     meta(charset="utf-8")
@@ -18,10 +17,30 @@ html
     meta(property="article:author",content="zbryikt")
     meta(property="article:section",content="Taiwan")
     meta(name="keywords",content="webfont,font loader,cjk")
-    +css("https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css")
-    +css("assets/ldui/ldui.min.css")
+    +css("assets/lib/bootstrap/main/css/bootstrap.min.css")
+    +css("assets/lib/bootstrap.ldui/main/bootstrap.ldui.min.css")
+    +css("assets/lib/ldloader/main/ldld.min.css")
+    +css("assets/lib/ldbutton/main/ldbtn.min.css")
+    +css("assets/lib/@loadingio/loading.css/main/loading.min.css")
+    +css("assets/lib/ldcover/main/ldcv.min.css")
     +css("css/index.css")
   body: #root
+    .ldcv: .base(style="max-width:90%;width:640px;height:480px;max-height:90%"): .inner
+      .w-100.h-100.d-flex.flex-column
+        .flex-grow-1.position-relative.p-4
+          .w-100.h-100.ld.ld-over-inverse
+            .ld.ld-ring.ld-cycle
+            svg.w-100.h-100.border.rounded.shadow-sm
+              defs
+                linearGradient#lg(x1="0",y1="0",x2="1",y2="1")
+                  stop(offset="0%",stop-color="#f00")
+                  stop(offset="25%",stop-color="#f90")
+                  stop(offset="50%",stop-color="#9f0")
+                  stop(offset="75%",stop-color="#0f9")
+                  stop(offset="100%",stop-color="#09f")
+              path(fill="url(#lg)")
+        .d-flex.justify-content-end.px-4.pb-4: .btn.btn-outline-dark(data-ldcv-set="") Close
+
     h1
       span XL Font Load / 
       ruby
@@ -29,7 +48,7 @@ html
         rt 中日韓
       span 字型載入器
     hr
-    #chooser
+    #chooser.d-flex
       .btn-group.mb-2.mr-2
         each font in featurefonts
           .btn.btn-outline-dark(data-font=font)= font
@@ -40,7 +59,8 @@ html
             a.dropdown-item(href="#",data-font=font)= font
           //-each font in enlist
             a.dropdown-item(href="#",data-font=font,data-type="en")= font
-
+      .flex-grow-1.text-right
+        .btn.btn-outline-dark(data-target="svg") 輸出 SVG
 
     textarea.form-control(rows="7",placeholder="在這邊隨便輸入一些中文字看看吧...")
     +nbr(2)
@@ -63,6 +83,11 @@ html
       div source code copyrighted #[a(href="https://twitter.com/zbryikt") @zbryikt] released under MIT License
       div source in #[a(href="https://github.com/plotdb/xfl") Github Repo] / font files in #[a(href="https://github.com/plotdb/xl-fontset") Another Github Repo]
 
-    +script("https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.27/bootstrap-native-v4.min.js")
+    +script("assets/lib/bootstrap.native/main/bootstrap-native-v4.min.js")
+    +script("assets/lib/@loadingio/ldquery/main/ldq.min.js")
+    +script("assets/lib/ldcover/main/ldcv.min.js")
+    +script("assets/lib/ldloader/main/ldld.min.js")
+    +script("assets/lib/proxise/main/proxise.min.js")
+    +script("assets/lib/opentype.js/main/opentype.min.js")
     +script("assets/lib/@plotdb/xfl/dev/xfl.js")
     +script("js/index.js")

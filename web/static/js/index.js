@@ -1,23 +1,36 @@
 var base, editor;
-base = 'https://plotdb.github.io/xl-fontset/alpha/';
+base = 'https://plotdb.github.io/xl-fontset/alpha';
 editor = {
   init: function(){
     var this$ = this;
+    this.ldcv = new ldcover({
+      root: document.querySelector('.ldcv')
+    });
+    this.ldld = new ldLoader({
+      root: document.querySelector('.ldcv .inner .ld')
+    });
+    this.svg = document.querySelector('svg');
+    this.path = document.querySelector('path');
     this.textarea = document.querySelector('textarea');
     this.textarea.addEventListener('keyup', function(){
       return this$.sync();
     });
     document.querySelector('#chooser').addEventListener('click', function(e){
-      var ref$, font, type;
+      var ref$, font, type, target;
       if (!e || !e.target) {
         return;
       }
-      ref$ = [e.target.getAttribute('data-font'), e.target.getAttribute('data-type')], font = ref$[0], type = ref$[1];
+      ref$ = [e.target.getAttribute('data-font'), e.target.getAttribute('data-type'), e.target.getAttribute('data-target')], font = ref$[0], type = ref$[1], target = ref$[2];
+      if (target === 'svg') {
+        return this$.toSvg();
+      }
       if (!font) {
         return;
       }
       if (type === 'en') {
-        return xfl.load("fonts/" + font + ".ttf", function(it){
+        return xfl.load({
+          path: "fonts/" + font + ".ttf"
+        }).then(function(it){
           this$.font = it;
           return this$.sync();
         });
@@ -25,11 +38,35 @@ editor = {
         return this$.load(font);
       }
     });
-    return this.load('王漢宗細黑');
+    return this.load('瀨戶字体');
+  },
+  toSvg: function(){
+    var this$ = this;
+    return this.ldld.on().then(function(){
+      return this$.ldcv.toggle();
+    }).then(function(){
+      return this$.font.getotf();
+    }).then(function(otf){
+      var path, box, d, rbox, x, y;
+      path = otf.getPath(this$.textarea.value, 0, 0, 48);
+      box = path.getBoundingBox();
+      d = path.toPathData();
+      rbox = this$.svg.getBoundingClientRect();
+      x = rbox.width / 2 - (box.x2 - box.x1) / 2 - box.x1;
+      y = rbox.height / 2 - (box.y2 - box.y1) / 2 - box.y1;
+      console.log(box, rbox);
+      console.log(x, y);
+      this$.path.setAttribute('d', d);
+      return this$.path.setAttribute('transform', "translate(" + x + ", " + y + ")");
+    }).then(function(){
+      return this$.ldld.off();
+    });
   },
   load: function(font){
     var this$ = this;
-    return xfl.load(base + "/" + font, function(font){
+    return xfl.load({
+      path: base + "/" + font
+    }).then(function(font){
       this$.font = font;
       this$.font.sync(document.body.innerText);
       return this$.sync();
@@ -45,7 +82,9 @@ editor = {
   }
 };
 editor.init();
-xfl.load(base + "/王漢宗超明", function(font){
+xfl.load({
+  path: base + "/瀨戶字体"
+}).then(function(font){
   var headlines, texts;
   headlines = Array.from(document.querySelectorAll('h1,h2,h3'));
   texts = headlines.map(function(it){

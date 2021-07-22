@@ -1,25 +1,52 @@
-base = \https://plotdb.github.io/xl-fontset/alpha/
+base = \https://plotdb.github.io/xl-fontset/alpha
 #base = \alpha/ # for local testing
 
 editor = do
   init: ->
+    @ldcv = new ldcover root: document.querySelector('.ldcv')
+    @ldld = new ldLoader root: document.querySelector('.ldcv .inner .ld')
+    @svg = document.querySelector('svg')
+    @path = document.querySelector('path')
     @textarea = document.querySelector \textarea
     @textarea.addEventListener \keyup, ~> @sync!
     document.querySelector \#chooser .addEventListener \click, (e) ~>
       if !e or !e.target => return
-      [font,type] = [e.target.getAttribute(\data-font), e.target.getAttribute(\data-type)]
+      [font,type,target] = [
+        e.target.getAttribute(\data-font), e.target.getAttribute(\data-type), e.target.getAttribute(\data-target)
+      ]
+      if target == \svg => return @to-svg!
       if !font => return
       if type == \en =>
-        xfl.load "fonts/#font.ttf", ~>
-          @font = it
-          @sync!
+        xfl.load {path: "fonts/#font.ttf"}
+          .then ~>
+            @font = it
+            @sync!
       else @load font
-    @load \王漢宗細黑
+    @load \瀨戶字体
+  to-svg: ->
+    @ldld.on!
+      .then ~> @ldcv.toggle!
+      .then ~> @font.getotf!
+      .then (otf) ~>
+        path = otf.getPath(@textarea.value, 0, 0, 48)
+        box = path.getBoundingBox!
+        d = path.toPathData!
+        rbox = @svg.getBoundingClientRect!
+        x = (rbox.width / 2) - ((box.x2 - box.x1) / 2) - box.x1
+        y = (rbox.height / 2) - ((box.y2 - box.y1) / 2) - box.y1
+        console.log box, rbox
+        console.log x, y
+        @path.setAttribute \d, d
+        @path.setAttribute \transform, "translate(#x, #y)"
+      .then ~> @ldld.off!
+
+
   load: (font) ->
-    xfl.load "#base/#font", (font) ~>
-      @font = font
-      @font.sync document.body.innerText
-      @sync!
+    xfl.load {path: "#base/#font"}
+      .then (font) ~>
+        @font = font
+        @font.sync document.body.innerText
+        @sync!
   sync: ->
     if !@font => return
     @font.sync @textarea.value
@@ -28,9 +55,10 @@ editor = do
 
 editor.init!
 
-xfl.load "#base/王漢宗超明", (font) ->
-  headlines = Array.from(document.querySelectorAll 'h1,h2,h3')
-  texts = headlines.map(-> it.innerText).join('')
-  font.sync texts
-  headlines.map -> it.classList.add font.className
+xfl.load {path: "#base/瀨戶字体"}
+  .then (font) ->
+    headlines = Array.from(document.querySelectorAll 'h1,h2,h3')
+    texts = headlines.map(-> it.innerText).join('')
+    font.sync texts
+    headlines.map -> it.classList.add font.className
 

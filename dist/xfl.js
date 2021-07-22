@@ -15,6 +15,7 @@
       font: {}
     };
     this.cjkOnly = opt.cjkOnly || false;
+    this.codemap = {};
     this.otf = {
       font: null,
       dirty: true
@@ -37,14 +38,15 @@
     this.init = proxise.once(function(){
       return this$._init();
     });
+    this.init();
     return this;
   };
   xfont.prototype = import$(Object.create(Object.prototype), {
     _init: function(){
+      var this$ = this;
       return Promise.resolve().then(function(){
-        var this$ = this;
-        if (!this.isXl) {
-          return this.css = "@font-face {\n  font-family: " + this.name + ";\n  src: url(" + this.path + ") " + this.format + ";\n}\n." + this.className + " { font-family: \"" + this.name + "\"; }";
+        if (!this$.isXl) {
+          return this$.css = "@font-face {\n  font-family: " + this$.name + ";\n  src: url(" + this$.path + ") " + this$.format + ";\n}\n." + this$.className + " { font-family: \"" + this$.name + "\"; }";
         } else {
           return new Promise(function(res, rej){
             var xhr;
@@ -59,7 +61,6 @@
                   message: xhr.responseText
                 }));
               }
-              this$.codemap = {};
               (xhr.responseText || '').split('\n').map(function(d, i){
                 return d.split(' ').map(function(e, j){
                   return this$.codemap[e] = i + 1;
@@ -136,6 +137,23 @@
       }
       return f.proxy(f);
     },
+    fetchAll: function(){
+      var k, f, this$ = this;
+      if (this.isXl) {
+        return Promise.all((function(){
+          var ref$, results$ = [];
+          for (k in ref$ = this.sub.font) {
+            f = ref$[k];
+            results$.push(f);
+          }
+          return results$;
+        }.call(this)).map(function(it){
+          return this$._fetch(it, true);
+        }));
+      } else {
+        return this._fetch(this.sub.font[0], true);
+      }
+    },
     fetch: function(list, dofetch){
       var ps, this$ = this;
       list == null && (list = []);
@@ -152,8 +170,8 @@
         return !this$.sub.font[it];
       }).map(function(it){
         var f;
-        this$.sub.font[it.key] = f = {
-          key: it.key
+        this$.sub.font[it] = f = {
+          key: it
         };
         return this$._fetch(f, dofetch);
       });
@@ -181,6 +199,8 @@
       return Promise.resolve().then(function(){
         if (!this$.isXl) {
           return this$.fetch();
+        } else {
+          return this$.fetchAll();
         }
       }).then(function(){
         var ps, k, f;
@@ -221,11 +241,13 @@
         }, []).filter(function(it){
           return it;
         });
-        return this$.otf.font = new opentype.Font((ref1$ = {
+        this$.otf.font = new opentype.Font((ref1$ = {
           familyName: this$.name,
           styleName: this$.style || 'normal',
           glyphs: glyphs
         }, ref1$.unitsPerEm = (ref$ = list[0].otf).unitsPerEm, ref1$.ascender = ref$.ascender, ref1$.descender = ref$.descender, ref1$));
+        this$.otf.font.kerningPairs = {};
+        return this$.otf.font;
       });
     },
     sync: function(txt){
@@ -246,8 +268,8 @@
           setIdx = this$.codemap[code.toString(16)];
           if (!setIdx) {
             misschar[txt[i]] = true;
-          } else if (!this$.hit[setIdx]) {
-            this$.hit[setIdx] = missset[setIdx] = true;
+          } else if (!this$.sub.set[setIdx]) {
+            this$.sub.set[setIdx] = missset[setIdx] = true;
           }
         }
         misschar = (function(){
@@ -269,6 +291,8 @@
           }
           return results$;
         }()));
+      }).then(function(){
+        return xfl.update();
       });
     }
   });
@@ -283,6 +307,7 @@
         return code >= it[0] && code <= it[1];
       }).length;
     },
+    proxy: {},
     update: function(){
       var css, k, v, node;
       css = (function(){
@@ -312,11 +337,13 @@
       this.running[path] = true;
       return Promise.resolve().then(function(){
         var fobj;
-        return this$.fonts[path] = fobj = new xfont(opt);
+        this$.fonts[path] = fobj = new xfont(opt);
+        return fobj.init();
       })['finally'](function(){
         return this$.running[path] = false;
-      }).then(function(it){
-        return this$.proxy[path].resolve(it);
+      }).then(function(){
+        this$.proxy[path].resolve(this$.fonts[path]);
+        return this$.fonts[path];
       })['catch'](function(it){
         return this$.proxy[path].reject(it);
       });
@@ -335,15 +362,15 @@
         if (that = this$.fonts[path]) {
           return res(that);
         }
-        if (this$.proxy[path]) {
-          this$.proxy[path].push(proxise(function(it){
+        if (!this$.proxy[path]) {
+          this$.proxy[path] = proxise(function(it){
             return this$._load(it);
-          }));
+          });
         }
         return this$.proxy[path]((ref$ = import$({}, opt), ref$.path = path, ref$)).then(function(it){
           return res(it);
         })['catch'](function(it){
-          return resj(it);
+          return rej(it);
         });
       });
     }

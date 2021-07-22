@@ -3,7 +3,7 @@
   "name": "@plotdb/xfl",
   "license": "MIT",
   "description": "XL font generator and loader",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "dist/xfl.js",
   "homepage": "https://github.com/plotdb/xfl",
   "files": [

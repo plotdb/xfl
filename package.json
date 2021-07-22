@@ -1,35 +1,51 @@
 {
-  "author": "Kirby Wu",
-  "name": "xl-fontload",
+  "author": "zbryikt",
+  "name": "@plotdb/xfl",
   "license": "MIT",
-  "description": "make quick and dynamic CJK web font",
+  "description": "XL font generator and loader",
   "version": "0.0.1",
-  "homepage": "https://github.com/plotdb/xl-fontload",
+  "main": "dist/xfl.js",
+  "homepage": "https://github.com/plotdb/xfl",
+  "files": [
+    "dist/**/*"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/plotdb/xl-fontload"
+    "url": "https://github.com/plotdb/xfl"
   },
   "engines": {
-    "node": ">=8.5.0",
-    "npm": ">=5.3.0"
+    "node": ">=10.14.1",
+    "npm": ">=6.4.1"
   },
   "scripts": {
-    "start": "cd web; ../node_modules/.bin/lsc ../node_modules/template/server.ls",
-    "build": "cd tool; ../node_modules/.bin/lsc ./build.ls"
+    "start": "npx server -r web -o true"
   },
-  "dependencies": {
-    "LiveScript": ">=1.2.0",
+  "devDependencies": {
+    "livescript": "^1.6.0",
     "stylus": "^0.54.5",
-    "uglify-js": "=3.2.0",
-    "uglifycss": "0.0.29",
-    "colors": "=1.1.2",
-    "fontmin": "=0.9.7-beta",
-    "fs-extra": "^6.0.1",
-    "gulp-rename": "=1.3.0",
-    "hoek": "^4.2.1",
-    "opentype.js": "=0.8.0",
-    "progress": "=2.0.0",
-    "ttf2woff2": "^2.0.3",
-    "template": "github:zbryikt/template#v2"
+    "uglify-js": "^3.2.0",
+    "uglifycss": "^0.0.29",
+    "fedep": "^0.0.12",
+    "template": "github:zbryikt/template#v2.3.13",
+    "bootstrap": "^4.5.3",
+    "bootstrap.ldui": "github:loadingio/bootstrap.ldui",
+    "@loadingio/debounce.js": "0.0.1",
+    "@loadingio/ldquery": "^2.0.0",
+    "ldview": "^0.2.0"
+  },
+  "peerDependencies": {
+    "opentype.js": "^0.8.0",
+    "proxise": "^0.1.2"
+  },
+  "frontendDependencies": {
+    "root": "web/static/assets/lib",
+    "modules": [
+      "bootstrap",
+      "bootstrap.ldui",
+      "@loadingio/ldquery",
+      "@loadingio/debounce.js",
+      "ldview",
+      "proxise"
+    ]
   }
 }

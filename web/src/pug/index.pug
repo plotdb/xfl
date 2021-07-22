@@ -1,5 +1,5 @@
 doctype html
-include ../../static/assets/ldui/pug/ldui.pug
+include @/bootstrap.ldui/dist/index.pug
 - var fontlist = ["851手書き雑フォント","中楷體","瀨戶字体","花園明朝","中仿宋體","刻石錄明體","站酷快乐体2016修订版","衡山毛筆","中圓體","刻石錄鋼筆鶴體","站酷高端黑体修订2015","中明體","刻石錄顏體","粗黑體","王漢宗中魏碑簡體","王漢宗仿宋體","王漢宗粗鋼體","王漢宗粗黑體實陰","王漢宗標楷體空心","王漢宗正海報","王漢宗細新宋簡體","王漢宗中明注音體","王漢宗波卡體空陰","王漢宗細明","王漢宗中明破音字1","王漢宗波浪體","王漢宗細黑","王漢宗中明破音字2","王漢宗海報體半天水","王漢宗中明破音字3","王漢宗中楷注音體","王漢宗超明","王漢宗中楷破音字1","王漢宗超黑俏皮動物","王漢宗中楷破音字2","王漢宗特黑","王漢宗酷儷海報","王漢宗中楷破音字3","王漢宗鋼筆行楷","王漢宗粗圓體雙空","王漢宗顏體"];
 - var featurefonts = ["瀨戶字体", "衡山毛筆", "王漢宗粗鋼體", "王漢宗綜藝體", "王漢宗波浪體"];
 
@@ -7,13 +7,13 @@ html
   head
     meta(charset="utf-8")
     meta(property="og:locale",content="zh_TW")
-    meta(property="og:image",content="http://plotdb.github.io/xl-fontload/assets/img/thumbnail.png")
+    meta(property="og:image",content="http://plotdb.github.io/xfl/assets/img/thumbnail.png")
     meta(property="og:image:type",content="image/png")
     meta(property="og:image:width",content="1200")
     meta(property="og:image:height",content="630")
     meta(property="og:title",content="XL Font Load / 大尺寸字型載入器")
     meta(property="og:type",content="article")
-    meta(property="og:url",content="http://plotdb.github.io/xl-fontload/")
+    meta(property="og:url",content="http://plotdb.github.io/xfl/")
     meta(property="og:description",content="這個專案實作了一個快速中文字型載入模組，將字型檔依字頻切成小塊，再根據網頁內容選擇需要載入的字型子集")
     meta(property="article:author",content="zbryikt")
     meta(property="article:section",content="Taiwan")
@@ -50,7 +50,7 @@ html
     p 另一方面，此專案亦收集了數十套免費、可商用的開放中文字型，也提供了預先切割好的字型模組，可直接分支使用，不需再花時間自行搜集處理。
     br
     h2 我要怎麼取得？
-    p 此專案託管於 #[a(href="https://github.com/plotdb/xl-fontload") Github 專案庫] ，您可以造訪該網址並利用 Git 分支，或者直接下載整包模組。
+    p 此專案託管於 #[a(href="https://github.com/plotdb/xfl") Github 專案庫] ，您可以造訪該網址並利用 Git 分支，或者直接下載整包模組。
     br
     h3 我可以整理自己的中文字型集嗎？
     p 可以！此專案連同編譯程式碼一同釋出，可自動編譯切割指定之字型檔。
@@ -61,9 +61,8 @@ html
     hr
     #footer
       div source code copyrighted #[a(href="https://twitter.com/zbryikt") @zbryikt] released under MIT License
-      div source in #[a(href="https://github.com/plotdb/xl-fontload") Github Repo] / font files in #[a(href="https://github.com/plotdb/xl-fontset") Another Github Repo]
+      div source in #[a(href="https://github.com/plotdb/xfl") Github Repo] / font files in #[a(href="https://github.com/plotdb/xl-fontset") Another Github Repo]
 
-
-    +script("assets/lib/xfl.js")
     +script("https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.27/bootstrap-native-v4.min.js")
+    +script("assets/lib/@plotdb/xfl/dev/xfl.js")
     +script("js/index.js")

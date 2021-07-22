@@ -1,105 +1,178 @@
-xfl = do
-  variants: <[Italic Regular Bold ExtraBold Medium SemiBold ExtraLight Light Thin Black BlackItalic BoldItalic ExtraBoldItalic MediumItalic LightItalic ThinItalic SemiBoldItalic ExtraLightItalic DemiBold Heavy UltraLight]>
-  fonts: {}
-  # TODO lets add a more accurate range
-  isCJK: -> ((code >= 0xff00 and code <= 0xffef) or (code >= 0x4e00 and code <= 0x9fff))
-  # load font from path. will resolve information from path,
-  # if failed to resolve, user can still supply options for alternative information.
-  load: (path, options={}, callback) ->
-    if !path => return
-    [path, cb] = [
-      path.replace(/\/$/, ''),
-      (if typeof(options) == 'function' => options else callback)
-    ]
-    if @fonts[path] => return (if cb => cb @fonts[path] else null)
-    # backward compatibility; remove this once we confirmed that there is not font-name used when calling API.
-    if options.font-name => options.name = options.font-name
-    [ext, name, slug] = [
-      (options.ext or (/\.([a-zA-Z0-9]+)$/.exec(path) or []).1 or '').toLowerCase!,
-      options.name or (path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1]),
-      (options.name or Math.random!toString(16).substring(2))
-    ]
-    variant = options.variant or (if ~name.indexOf('-') => name.split('-')[* - 1] else 'Regular')
-    if !(variant in xfl.variants) => variant = \Regular
-    @fonts[path] = font = do
-      name: name
-      path: path
-      variant: variant
-      options: options
-      className: "xfl-#slug"
-      code-to-set: {}  # convert unicode to the set idx that contains this code. load from charmap.txt
-      hit: {} # is specific set been hit? hashed by index
-      url: {} # blob URL for specific set, hashed by index
-      ext: if ext and ~(<[woff2 woff eot ttf otf]>.indexOf(ext)) => ext else null
+err = (e = {}) -> new Error! <<< ({name: \lderror} <<< e)
 
-    # TODO support patterns like https://PATH/TO/FONT/1+2+3.ttf for faster request
-    font.ajax = (idxlist, cb) ->
-      check = ~> if idxlist.map(~>@url[it]).filter(->it).length == idxlist.length => return cb!
-      idxlist.map (d,i) ~>
-        if @url[d] => return check!
+xfont = (opt = {}) ->
+  @opt = opt
+  @sub = {set: {}, font: {}}
+  @cjk-only = opt.cjk-only or false
+  @otf =
+    font: null   # opentype.js font object
+    dirty: true  # true if we need to re-generate
+  @path = opt.path
+  @name = opt.name or (@path.replace(/\.[a-zA-Z0-9]+$/,'').split("/").filter(->it)[* - 1])
+  @style = 'normal'
+  @ext = (opt.ext or (/\.([a-zA-Z0-9]+)$/.exec(@path) or []).1 or '')
+  @format = if @ext.toLowerCase! =>
+    if that == 'ttf' => 'truetype'
+    else if that == 'otf' => 'truetype'
+    else that
+  else ''
+  if @format => @format = "format('#{@format}')"
+  @className = "xfl-#{@name}-#{Math.random!toString(36)substring(2)}"
+  @is-xl = !@ext
+  @css = ''
+  @init = proxise.once ~> @_init!
+  @
+
+xfont.prototype = Object.create(Object.prototype) <<< do
+  _init: ->
+    Promise.resolve!then ->
+      # not xlfont but regular font. load directly.
+      if !@is-xl =>
+        @css = """
+        @font-face {
+          font-family: #{@name};
+          src: url(#{@path}) #{@format};
+        }
+        .#{@className} { font-family: "#{@name}"; }"""
+      else return new Promise (res, rej) ~>
         xhr = new XMLHttpRequest!
         xhr.addEventListener \readystatechange, ~>
-          if xhr.readyState != 4 => return
-          @url[d] = URL.createObjectURL(xhr.response)
-          return check!
-        xhr.open \GET, "#path/#d.ttf"
-        xhr.responseType = \blob
+          if xhr.readyState != XMLHttpRequest.DONE => return
+          if xhr.status != 200 => return rej err {code: xhr.status, message: xhr.responseText}
+          @codemap = {}
+          (xhr.responseText or '')
+            .split(\\n)
+            .map (d,i) ~> d.split(' ').map (e,j) ~> @codemap[e] = (i + 1)
+          res!
+        xhr.open \GET, "#{@path}/charmap.txt"
         xhr.send!
 
-    font.sync = (txt = "", cb) ->
-      # fonts with file extension will be treated as needing directly download
-      if @nosync => return (if cb => cb! else '')
-      [misschar, missset]= [{}, {}]
-      for i from 0 til txt.length =>
-        code = txt.charCodeAt(i)
-        if options.cjk-only and !xfl.isCJK(code) => continue
-        set-idx = @code-to-set[code.toString 16]
-        if !set-idx => misschar[txt[i]] = true
-        else if !@hit[set-idx] => @hit[set-idx] = missset[set-idx] = true
-      misschar = [k for k of misschar].filter(->it.trim!)
-      if misschar.length => console.log "not supported chars: #{misschar.join('')}"
-      <~ @ajax [k for k of missset], _
-      [css, idxlist] = ["", [k for k of @hit]]
-      for idx in idxlist =>
-        url = @url[idx] or "#path/#idx.woff2"
-        css += """
-        @font-face {
-          font-family: #{name};
-          src: url(#{url}) format('woff2');
-        }
-        """
-      names = idxlist.map(-> "#{name}-#it").join(\,)
-      css += ".#{@className} { font-family: #name; }"
-      @css = css
-      xfl.update!
-      if cb => cb!
+  _fetch: (f = {}, dofetch = false) ->
+    if !dofetch =>
+      if !f.url =>
+        if @is-xl => f <<< url: "#{@path}/#{f.key}.woff2", type: 'woff2'
+        else f <<< url: @path, type: @ext.toLowerCase!
+      return Promise.resolve f
+    if f.blob => return Promise.resolve f
+    if !f.proxy => f.proxy = proxise (f) ~>
+      if f.running => return
+      f.running = true
+      p = new Promise (res, rej) ~>
+        if f.blob => return res f
+        xhr = new XMLHttpRequest!
+        xhr.addEventListener \readystatechange, ~>
+          if xhr.readyState != XMLHttpRequest.DONE => return
+          if xhr.status != 200 => return rej err {code: xhr.status, message: xhr.responseText}
+          @otf.dirty = true
+          f <<< url: URL.createObjectURL(xhr.response), blob: xhr.response, type: (@ext.toLowerCase! or 'ttf')
+          return res f
+        if @is-xl => xhr.open \GET, "#{@path}/#{f.key}.ttf"
+        else xhr.open \GET, @path
+        xhr.responseType = \blob
+        xhr.send!
+      p.finally -> f.running = false
+    f.proxy f
 
-    if font.ext => # load directly if path has extension ...
-      font.nosync = true
-      format = if font.ext and font.ext != 'ttf' => "format('#{font.ext}')" else ''
-      font.css = """
-      @font-face {
-        font-family: #name;
-        src: url(#path) #format;
-      }
-      .#{font.className} { font-family: "#name"; }"""
-      xfl.update!
-      if cb => return cb font
-    else # ... else treat it as a subsetted font set
-      xhr = new XMLHttpRequest!
-      xhr.addEventListener \readystatechange, ~>
-        if xhr.readyState != 4 => return
-        hash = {}
-        xhr.responseText.split(\\n).map (d,i) -> d.split(' ').map (e,j) -> hash[e] = (i + 1)
-        font.code-to-set = hash
-        if cb => return cb font
-      xhr.open \GET, "#path/charmap.txt"
-      xhr.send!
+  fetch: (list = [], dofetch = false) ->
+    if !@is-xl =>
+      if @sub.font[0].blob => return Promise.resolve!
+      list = [0]
+    # to support dynamic font aggregation, patch this following line
+    ps = Array.from new Set(list.map -> it)
+      .filter ~> !@sub.font[it]
+      .map ~>
+        @sub.font[it.key] = f = {key: it.key}
+        @_fetch f, dofetch
+    Promise.all ps
+      .then ~>
+        css = ".#{@className} { font-family: #{@name}; }"
+        for k,f of @sub.font =>
+          css += """@font-face {
+            font-family: #{@name};
+            src: url(#{f.url}) format('#{f.type}');
+          }"""
+        @css = css
+
+  getotf: ->
+    if !(opentype?) =>
+      return Promise.reject err({id: 1022, message: "[@plotdb/xfl] need opentype.js to merge subfonts"})
+    if !@otf.dirty => return Promise.resolve(@otf.font)
+    Promise.resolve!
+      .then ~> if !@is-xl => return @fetch!
+      .then ~> 
+        ps = [f for k,f of @sub.font] .map (f) ->
+          if f.otf => Promise.resolve(f)
+          else opentype.load f.url .then -> f.otf = it; f
+        Promise.all ps
+      .then (list = []) ~>
+        if list.length == 1 => return list.0.otf
+        glyphs = list
+          .map (f) -> 
+            glyphs = f.otf.glyphs
+            [glyphs.glyphs[i] for i from 1 to glyphs.length]
+          .reduce(((a,b) -> a ++ b), [])
+          .filter -> it
+        return @otf.font = new opentype.Font({
+          familyName: @name
+          styleName: @style or 'normal'
+          glyphs: glyphs
+        } <<< list.0.otf{unitsPerEm, ascender, descender})
+
+  sync: (txt = "") ->
+    if !@is-xl => return Promise.resolve!
+    [misschar, missset]= [{}, {}]
+    Promise.resolve!
+      .then ~>
+        for i from 0 til txt.length =>
+          code = txt.charCodeAt(i)
+          if @cjk-only and !xfl.isCJK(code) => continue
+          set-idx = @codemap[code.toString 16]
+          if !set-idx => misschar[txt[i]] = true
+          else if !@hit[set-idx] => @hit[set-idx] = missset[set-idx] = true
+        misschar := [k for k of misschar].filter(->it.trim!)
+        if misschar.length =>
+          console.log "[@plotdb/xfl] sync xl-font with following chars unsupported: #{misschar.join('')}"
+        @fetch [k for k of missset]
+
+xfl = do
+  range:
+    CJK: [
+      [0x3040 0x30ff], [0x3400 0x4dbf], [0x4e00 0x9fff],
+      [0xf900 0xfaff], [0xff66 0xff9f], [0x3131 0xD79D]
+    ]
+  fonts: {}
+  running: {}
+  isCJK: (code) -> @range.CJK.filter(-> code >= it.0 and code <= it.1).length
+
   update: ->
-    css = [(v.css or '') for k,v of xfl.fonts].join('\n')
-    node = xfl.node or document.createElement("style")
+    css = [(v.css or '') for k,v of @fonts].join('\n')
+    node = @node or document.createElement("style")
     node.textContent = css
-    if xfl.node => return
+    if @node => return
     node.setAttribute \type, 'text/css'
     document.body.appendChild node
-    xfl.node = node
+    @node = node
+
+  # load font from path. will resolve information from path,
+  # if failed to resolve, user can still supply options for alternative information.
+  _load: (opt = {}) -> 
+    {path} = opt
+    if @running[path] => return
+    @running[path] = true
+    Promise.resolve!
+      .then ~> @fonts[path] = fobj = new xfont opt
+      .finally ~> @running[path] = false
+      .then ~> @proxy[path].resolve it
+      .catch ~> @proxy[path].reject it
+
+  load: (opt = {}) -> new Promise (res, rej) ~>
+    if !(path = opt.path) => return rej err({id: 400})
+    path = path.replace(/\/$/,'')
+    if @fonts[path] => return res(that)
+    if @proxy[path] => @proxy[path].push proxise ~> @_load it
+    @proxy[path]({} <<< opt <<< {path})
+      .then -> res it
+      .catch -> resj it
+
+if module? => module.exports = xfl
+else if window? => window.xfl = xfl

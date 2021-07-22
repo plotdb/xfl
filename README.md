@@ -1,5 +1,4 @@
-xl-fontload
-=======
+# xl-fontload
 
 中文字型網路化。 依詞頻切割字型，並透過前端實作 lazy loading。 無需後端程式支援。
 
@@ -16,8 +15,7 @@ xl-fontload
 
 
 
-Usage / Compiler
-----------------
+## Usage / Compiler
 
  * 此專案使用 nodejs, 請先安裝 nodejs 與 npm ，並利用 npm install 建利 node_modules 目錄。
    參考指令: 
@@ -33,8 +31,7 @@ Usage / Compiler
 
 
 
-Usage / Frontend
-----------------
+## Usage / Frontend
 
 基本使用方式：
 
@@ -69,8 +66,7 @@ Options:
 
 
 
-未來方向
---------
+## 未來方向
 
  * 傳輸最佳化 ( Optimization )
    * 考慮到字符相關性，可透過萌典、特定語料庫建立字符空間，透過 clustering algorithm ( 如 K-means clustering ) 將相關字符分組做為字型切割依據，進而減少需要載入的檔案數量.
@@ -87,8 +83,7 @@ Options:
      - https://fonts.googleapis.com/css?family=Zhi-Mang-Xing&display=swap
 
 
-LICENSE
---------
+## LICENSE
 
  * Font Files: All curated font files are separatedly placed in [another repo (xl-fontset)](https://github.com/plotdb/xl-fontset/) and are either GPL or SIL-OFL Licensed. (OK for Commercial Use)
  * Source codes are released under MIT License.

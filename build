@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
+
+echo "prepare..."
+rm -rf dist
 mkdir -p dist
-echo "build src/xfl.ls -> dist/xfl.js ..."
-./node_modules/.bin/lsc -cbp src/xfl.ls > dist/xfl.js
-echo "minifying xfl.js ..."
+
+echo "building xfl.ls -> xfl.js ..."
+./node_modules/.bin/lsc -cp --no-header src/xfl.ls > dist/xfl.js
+echo "minify xfl.js -> xfl.min.js ..."
 ./node_modules/.bin/uglifyjs dist/xfl.js > dist/xfl.min.js
-echo "deploy into local web ..."
-mkdir -p web/static/assets/lib/
-cp -R dist/* web/static/assets/lib/
+
+echo "copy dist to web ..."
+rm -rf web/static/assets/lib/@plotdb/xfl/dev/
+mkdir -p web/static/assets/lib/@plotdb/xfl/dev/
+cp -R dist/* web/static/assets/lib/@plotdb/xfl/dev/
+
 echo "done."

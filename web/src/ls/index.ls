@@ -1,4 +1,5 @@
 base = \https://plotdb.github.io/xl-fontset/alpha
+base = \/assets/fonts
 #base = \alpha/ # for local testing
 
 editor = do
@@ -11,10 +12,11 @@ editor = do
     @textarea.addEventListener \keyup, ~> @sync!
     document.querySelector \#chooser .addEventListener \click, (e) ~>
       if !e or !e.target => return
-      [font,type,target] = [
-        e.target.getAttribute(\data-font), e.target.getAttribute(\data-type), e.target.getAttribute(\data-target)
-      ]
+      target = e.target.getAttribute(\data-target)
       if target == \svg => return @to-svg!
+      p = ld$.parent(e.target, '[data-font]', document.querySelector(\#chooser))
+      if !p => return
+      [font,type] = [ p.getAttribute(\data-font), p.getAttribute(\data-type) ]
       if !font => return
       if type == \en =>
         xfl.load {path: "fonts/#font.ttf"}
@@ -22,20 +24,18 @@ editor = do
             @font = it
             @sync!
       else @load font
-    @load \瀨戶字体
+    @load \openhuninn-1.1
   to-svg: ->
     @ldld.on!
       .then ~> @ldcv.toggle!
       .then ~> @font.getotf!
       .then (otf) ~>
-        path = otf.getPath(@textarea.value, 0, 0, 48)
+        path = otf.getPath(@textarea.value.replace(/\s/g,' '), 0, 0, 48)
         box = path.getBoundingBox!
         d = path.toPathData!
         rbox = @svg.getBoundingClientRect!
         x = (rbox.width / 2) - ((box.x2 - box.x1) / 2) - box.x1
         y = (rbox.height / 2) - ((box.y2 - box.y1) / 2) - box.y1
-        console.log box, rbox
-        console.log x, y
         @path.setAttribute \d, d
         @path.setAttribute \transform, "translate(#x, #y)"
       .then ~> @ldld.off!
@@ -55,10 +55,9 @@ editor = do
 
 editor.init!
 
-xfl.load {path: "#base/瀨戶字体"}
+xfl.load {path: "#base/NaikaiFont-Bold"}
   .then (font) ->
     headlines = Array.from(document.querySelectorAll 'h1,h2,h3')
     texts = headlines.map(-> it.innerText).join('')
     font.sync texts
     headlines.map -> it.classList.add font.className
-

@@ -1,5 +1,6 @@
 var base, editor;
 base = 'https://plotdb.github.io/xl-fontset/alpha';
+base = '/assets/fonts';
 editor = {
   init: function(){
     var this$ = this;
@@ -16,14 +17,19 @@ editor = {
       return this$.sync();
     });
     document.querySelector('#chooser').addEventListener('click', function(e){
-      var ref$, font, type, target;
+      var target, p, ref$, font, type;
       if (!e || !e.target) {
         return;
       }
-      ref$ = [e.target.getAttribute('data-font'), e.target.getAttribute('data-type'), e.target.getAttribute('data-target')], font = ref$[0], type = ref$[1], target = ref$[2];
+      target = e.target.getAttribute('data-target');
       if (target === 'svg') {
         return this$.toSvg();
       }
+      p = ld$.parent(e.target, '[data-font]', document.querySelector('#chooser'));
+      if (!p) {
+        return;
+      }
+      ref$ = [p.getAttribute('data-font'), p.getAttribute('data-type')], font = ref$[0], type = ref$[1];
       if (!font) {
         return;
       }
@@ -38,7 +44,7 @@ editor = {
         return this$.load(font);
       }
     });
-    return this.load('瀨戶字体');
+    return this.load('openhuninn-1.1');
   },
   toSvg: function(){
     var this$ = this;
@@ -48,14 +54,12 @@ editor = {
       return this$.font.getotf();
     }).then(function(otf){
       var path, box, d, rbox, x, y;
-      path = otf.getPath(this$.textarea.value, 0, 0, 48);
+      path = otf.getPath(this$.textarea.value.replace(/\s/g, ' '), 0, 0, 48);
       box = path.getBoundingBox();
       d = path.toPathData();
       rbox = this$.svg.getBoundingClientRect();
       x = rbox.width / 2 - (box.x2 - box.x1) / 2 - box.x1;
       y = rbox.height / 2 - (box.y2 - box.y1) / 2 - box.y1;
-      console.log(box, rbox);
-      console.log(x, y);
       this$.path.setAttribute('d', d);
       return this$.path.setAttribute('transform', "translate(" + x + ", " + y + ")");
     }).then(function(){
@@ -83,7 +87,7 @@ editor = {
 };
 editor.init();
 xfl.load({
-  path: base + "/瀨戶字体"
+  path: base + "/NaikaiFont-Bold"
 }).then(function(font){
   var headlines, texts;
   headlines = Array.from(document.querySelectorAll('h1,h2,h3'));

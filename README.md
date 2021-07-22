@@ -1,6 +1,10 @@
-# xl-fontload
+# @plotdb/xfl
 
-中文字型網路化。 依詞頻切割字型，並透過前端實作 lazy loading。 無需後端程式支援。
+XL-Font Loader - 大尺寸字型載入器與切割工具。
+
+ - 支援大尺寸字型部份載入 。
+ - 依詞頻切割字型，並透過前端實作 lazy loading 。
+ - 無需後端程式支援，但亦可由後端支援字型檔合併。
 
  * 字頻檔 ( word-frequency.csv )
    示範檔來源: [教育部](http://language.moe.gov.tw/001/Upload/files/SITE_CONTENT/M0001/86NEWS/download/86rest17.TXT)

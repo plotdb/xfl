@@ -1,6 +1,6 @@
 {
-  "author": "Kirby Wu",
-  "name": "xl-fontload",
+  "author": "zbryikt",
+  "name": "@plotdb/xfl",
   "license": "MIT",
   "description": "make quick and dynamic CJK web font",
   "version": "0.0.1",

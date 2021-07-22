@@ -5,6 +5,9 @@
   "description": "make quick and dynamic CJK web font",
   "version": "0.0.1",
   "homepage": "https://github.com/plotdb/xl-fontload",
+  "files": [
+    "dist/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/plotdb/xl-fontload"

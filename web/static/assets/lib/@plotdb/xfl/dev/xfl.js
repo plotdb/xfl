@@ -83,8 +83,8 @@
       if (!dofetch) {
         if (!f.url) {
           if (this.isXl) {
-            f.url = this.path + "/" + f.key + ".woff2";
-            f.type = 'woff2';
+            f.url = this.path + "/" + f.key + ".ttf";
+            f.type = 'truetype';
           } else {
             f.url = this.path;
             f.type = this.ext.toLowerCase();
@@ -339,25 +339,6 @@
         it.rendered = true;
         return css += it.content;
       }
-    },
-    _update: function(){
-      var css, k, v, node;
-      css = (function(){
-        var ref$, results$ = [];
-        for (k in ref$ = this.fonts) {
-          v = ref$[k];
-          results$.push(v.css || '');
-        }
-        return results$;
-      }.call(this)).join('\n');
-      node = this.node || document.createElement("style");
-      node.textContent = css;
-      if (this.node) {
-        return;
-      }
-      node.setAttribute('type', 'text/css');
-      document.body.appendChild(node);
-      return this.node = node;
     },
     _load: function(opt){
       var path, this$ = this;

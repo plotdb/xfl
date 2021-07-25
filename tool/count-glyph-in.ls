@@ -1,4 +1,4 @@
-require! <[yargs opentype.js]>
+require! <[yargs @plotdb/opentype.js]>
 
 argv = yargs
   .usage "usage: count-glyph-in filename"

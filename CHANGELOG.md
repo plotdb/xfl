@@ -8,3 +8,6 @@
  - better support for concurrent fetching
  - support promise in all api
  - use SIL-Open Licensed fonts only for demonstration
+ - remove fontmin / gulp-rename dependency
+ - add `woff` format output
+ - use `@plotdb/opentype.js` for bug fixing

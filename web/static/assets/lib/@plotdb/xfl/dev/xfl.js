@@ -83,8 +83,8 @@
       if (!dofetch) {
         if (!f.url) {
           if (this.isXl) {
-            f.url = this.path + "/" + f.key + ".ttf";
-            f.type = 'truetype';
+            f.url = this.path + "/" + f.key + ".woff2";
+            f.type = 'woff2';
           } else {
             f.url = this.path;
             f.type = this.ext.toLowerCase();
@@ -358,7 +358,8 @@
         this$.proxy[path].resolve(this$.fonts[path]);
         return this$.fonts[path];
       })['catch'](function(it){
-        return this$.proxy[path].reject(it);
+        this$.proxy[path].reject(it);
+        return Promise.reject(it);
       });
     },
     load: function(opt){

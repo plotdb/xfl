@@ -186,7 +186,9 @@ xfl = do
       .then ~>
         @proxy[path].resolve @fonts[path]
         @fonts[path]
-      .catch ~> @proxy[path].reject it
+      .catch ~>
+        @proxy[path].reject it
+        Promise.reject it
 
   load: (opt = {}) -> new Promise (res, rej) ~>
     if !(path = opt.path) => return rej err({id: 400})

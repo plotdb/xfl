@@ -358,7 +358,8 @@
         this$.proxy[path].resolve(this$.fonts[path]);
         return this$.fonts[path];
       })['catch'](function(it){
-        return this$.proxy[path].reject(it);
+        this$.proxy[path].reject(it);
+        return Promise.reject(it);
       });
     },
     load: function(opt){

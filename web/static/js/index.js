@@ -44,7 +44,7 @@ editor = {
         return this$.load(font);
       }
     });
-    return this.load('openhuninn-1.1');
+    return this.load('KleeOne-Regular');
   },
   toSvg: function(){
     var this$ = this;
@@ -87,7 +87,7 @@ editor = {
 };
 editor.init();
 xfl.load({
-  path: base + "/NaikaiFont-Bold"
+  path: base + "/SoukouMincho"
 }).then(function(font){
   var headlines, texts;
   headlines = Array.from(document.querySelectorAll('h1,h2,h3'));

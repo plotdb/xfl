@@ -24,7 +24,7 @@ editor = do
             @font = it
             @sync!
       else @load font
-    @load \openhuninn-1.1
+    @load \KleeOne-Regular
   to-svg: ->
     @ldld.on!
       .then ~> @ldcv.toggle!
@@ -55,7 +55,8 @@ editor = do
 
 editor.init!
 
-xfl.load {path: "#base/NaikaiFont-Bold"}
+#xfl.load {path: "#base/KleeOne-SemiBold"}
+xfl.load {path: "#base/SoukouMincho"}
   .then (font) ->
     headlines = Array.from(document.querySelectorAll 'h1,h2,h3')
     texts = headlines.map(-> it.innerText).join('')

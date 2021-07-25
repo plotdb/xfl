@@ -15,19 +15,33 @@ include @/bootstrap.ldui/dist/index.pug
     ["TrainOne", "TrainOne-Regular", "4356"],
 
     ["Google x Adobe"],
-    ["思源宋體 / 極細", "NotoSerifCJKtc-ExtraLight"],
-    ["思源宋體 / 細", "NotoSerifCJKtc-Light"],
-    ["思源宋體", "NotoSerifCJKtc-Regular"],
-    ["思源宋體 / 適中", "NotoSerifCJKtc-Medium"],
-    ["思源宋體 / 次粗", "NotoSerifCJKtc-SemiBold"],
-    ["思源宋體 / 粗", "NotoSerifCJKtc-Bold"],
-    ["思源宋體 / 濃", "NotoSerifCJKtc-Black"],
+    ["思源宋體 / 極細", "NotoSerifCJKtc-ExtraLight", 65535],
+    ["思源宋體 / 細", "NotoSerifCJKtc-Light", 65535],
+    ["思源宋體", "NotoSerifCJKtc-Regular", 65535],
+    ["思源宋體 / 適中", "NotoSerifCJKtc-Medium", 65535],
+    ["思源宋體 / 次粗", "NotoSerifCJKtc-SemiBold", 65535],
+    ["思源宋體 / 粗", "NotoSerifCJKtc-Bold", 65535],
+    ["思源宋體 / 濃", "NotoSerifCJKtc-Black", 43029],
+
+    ["思源黑體 / 極細", "NotoSansCJKtc-ExtraLight", 65535],
+    ["思源黑體 / 細", "NotoSansCJKtc-Light", 65535],
+    ["思源黑體", "NotoSansCJKtc-Regular", 65535],
+    ["思源黑體 / 適中", "NotoSansCJKtc-Medium", 65535],
+    ["思源黑體 / 次粗", "NotoSansCJKtc-SemiBold", 65535],
+    ["思源黑體 / 粗", "NotoSansCJKtc-Bold", 65535],
+    ["思源黑體 / 濃", "NotoSansCJKtc-Black", 65535],
+
+    ["思源等寬", "NotoSansMonoCJKtc-Regular", 65535],
+    ["思源等寬 / 粗", "NotoSansMonoCJKtc-Bold", 65535],
 
     ["cjkFonts x 清松手寫體"],
     ["cjk手寫4", "cjk手寫4", "12201"],
 
     ["justfont"],
     ["粉圓體", "openhuninn-1.1", "9676"],
+
+    ["flopdesign"],
+    ["裝甲明朝", "SoukouMincho", "9803"],
 
     ["翰字鑄造JT Foundry"],
     ["台北黑體 / 粗", "TaipeiSansTCBeta-Bold", "32732"],
@@ -94,7 +108,7 @@ html
         .d-flex.justify-content-end.px-4.pb-4: .btn.btn-outline-dark(data-ldcv-set="") Close
 
     h1
-      span XL Font Load / 
+      span #[span.text-danger X]L #[span.text-danger F]ont #[span.text-danger L]oad / 
       ruby
         rb 大尺寸
         rt 中日韓
@@ -106,7 +120,7 @@ html
           .btn.btn-outline-dark(data-font=font[1])= font[0]
       .dropdown(style="display:inline-block;vertical-align:top")
         .btn.btn-outline-dark.dropdown-toggle(data-toggle="dropdown") More
-        .dropdown-menu.shadow-sm(style="max-height:400px;overflow:scroll")
+        .dropdown-menu.shadow-sm(style="max-height:400px;overflow:scroll;overscroll-behavior:contain")
           each font,$index in fontlist
             if font.length > 1
               a.dropdown-item.d-flex.align-items-center(href="#",data-font=font[1])
@@ -117,6 +131,8 @@ html
               if $index != 0
                 .dropdown-divider
               .dropdown-header.text-underline= font[0]
+          .dropdown-divider
+          .dropdown-header 以下空白
           //-each font in enlist
             a.dropdown-item(href="#",data-font=font,data-type="en")= font
       .flex-grow-1.text-right
@@ -125,22 +141,57 @@ html
     textarea.form-control(rows="7",placeholder="在這邊隨便輸入一些中文字看看吧...")
     +nbr(2)
     h2 這是什麼？
-    p 中文字型檔向來動輒數MB，若要做為網路字型使用往往很卡。其它解決方案大多是商業付費服務，而且針對動態內容，要嘛做不好，亦或成本很高。
-    p 針對這個問題，#[code @plotdb/xfl] 實作了：
+    p 中文字型向來動輒數MB 甚至數十MB，若要做為網路字型使用往往很卡。其它解決方案大多是商業付費服務，而且針對動態內容，要嘛做不好，亦或成本很高。
+    p 針對這個問題，#[span.text-danger X]L #[span.text-danger F]ont #[span.text-danger L]oad = #[code @plotdb/xfl] 實作了：
     ul
       li 中文字型切割工具
       li 中文字型載入模組
-    p 先使用切割工具將字型檔依字頻切成小塊後，再使用載入器根據網頁內容選擇需要載入的字型子集，因此我們可以快速的選取想要的字型，套用在網站上。切割過後的字型亦可搭配 #[code opentype.js] 於前、後端進行字型組合。
-    p 另一方面，此專案亦收集了十套來以 #[code SIL Open Font License 1.1] 釋出的免費、可商用開放中文字型，包含黑、宋、圓、手寫、風格等類型的字體，亦提供預先切割好的字型模組，可直接分支使用，不需再花時間自行搜集處理。
-    br
-    h2 我要怎麼取得？
-    p 此專案託管於 #[a(href="https://github.com/plotdb/xfl") Github 專案庫] ，您可以造訪該網址並利用 Git 分支，或者直接下載整包模組。
+    p 先使用切割工具將字型依字頻切成小塊後，再使用載入器根據網頁內容選擇需要載入的字型子集，因此我們可以快速的選取想要的字型，套用在網站上。切割過後的字型亦可搭配 #[code opentype.js] 於前、後端進行字型組合。
+    p 另一方面，此專案亦收集了下列等以 #[code SIL Open Font License 1.1] 釋出的免費、可商用開放中文字型，包含黑、宋、圓、手寫、風格等類型的字體，亦提供預先切割好的字型模組，可直接分支使用，不需再花時間自行搜集處理。
+    p 以下為目前我們整理的字型列表，含不同樣式共 37 個字型檔：
+    ul
+      li 思源黑體 / 思源宋體 / 思源等寬 - 約六萬餘字
+      li 花園明朝 - 約四萬 ~ 六萬字
+      li 內海字體 ( 瀨戶、小瀨、全瀨整合版 ) - 約四萬餘字
+      li 台北黑體 ( Beta 版 ) - 約三萬餘字
+      li 裝甲明朝 ( 思源宋體之變體 ) - 約一萬五千字
+      li cjk手寫4 ( 清松手寫4 的 AI 補完版 ) - 約一萬字
+      li 粉圓體 ( justfont 基於 Kosugi Maru 的改良版 ) - 約一萬字
+      li Fontworks 系列 ( 日文字型 ) - 約五千 ~ 一萬字
     br
     h3 我可以整理自己的中文字型集嗎？
     p 可以！此專案連同編譯程式碼一同釋出，可自動編譯切割指定之字型檔。
     br
+    h2 我要怎麼取得跟使用？
+    p 此專案託管於 #[a(href="https://github.com/plotdb/xfl") Github 專案庫] ，你可以造訪該網址並利用 Git 分支，或者直接下載整包模組。
+    p 你亦可使用 #[code npm]：
+    pre.code.
+      npm install --save @plotdb/xfl
+      npx xfl -o [out-dir] [font-dir] # 字型切割工具
+    p 前端字型載入器則引入 #[code dist/xfl.js] 後使用：
+    pre.code.
+      &lt;script src="path-to/xfl.js"&gt;&lt;/script&gt;
+      &lt;script&gt;
+        xfl.load({path: "path-to/xl-font-folder"})
+          .then(function(font) {
+            font.sync("給定一些文字，xfl 就會幫你抓對應的字型檔");
+          });
+      &lt;/script&gt;
+    p 詳細的文件請參照 #[a(href="https://github.com/plotdb/xfl/blob/master/README.md") Github 專案庫中的 README.md 文件]。
+
+    br
+    h3 與 justfont 或其它的網路字型服務比較？
+    p 網路字型服務一般有兩個重點：
+    ul
+      li 自有字型
+      li 網頁字型服務
+    p 自有字型不用說，大部份字型服務提供者的商業核心還是在其高品質的自有字型，這是字型工具無法提供的。而在網頁字型服務這點，因為 #[code @plotdb/xfl] 套件缺乏動態後端組字機制，嚴格來說也無法取代動態生成式的網路字型服務。況且，一旦牽涉到後端組字，就算是自幹也會有主機跟流量的成本，因此除非有大量需求來攤平成本，否則使用這類服務的性價比一般還是會比自幹高。
+    p 什麼時候會有大量需求的情境？比方說，若我們開發用戶可以自選字型的網頁編輯工具，用戶的每一個 keystroke 都可能導致一次 API Call ，但網頁字型服務往往就是以 API 呼叫次數做計費基準，我們又不太可能限制用戶打字的次數，這種情境下使用以次計價的服務就顯得不太實際。
+    p 此外靜態字型子集較動態生成的字型檔來說在快取上較有優勢。若預期字型檔不會頻繁更新，可以設定較長的快取週期，並可搭配 Cloudflare 等 CDN 服務，可以獲得更快速的內容發送以及更少的流量負擔。
+    br
+
     h3 換字型會閃 / 打字會閃 / 載入還是很久 / 字型有缺字
-    p 這些都是未來改進方向，科科。
+    p 以靜態方式實作網路字型仍然受限於瀏覽器技術，但若有任何問題，都可以在 #[a(href="https://github.com/plotdb/xfl/issues") Github Issues] 中提出。
     br
     hr
     #footer
@@ -152,6 +203,6 @@ html
     +script("assets/lib/ldcover/main/ldcv.min.js")
     +script("assets/lib/ldloader/main/ldld.min.js")
     +script("assets/lib/proxise/main/proxise.min.js")
-    +script("assets/lib/opentype.js/main/opentype.min.js")
+    +script("assets/lib/@plotdb/opentype.js/main/opentype.js")
     +script("assets/lib/@plotdb/xfl/dev/xfl.js")
     +script("js/index.js")

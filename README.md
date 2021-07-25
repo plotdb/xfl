@@ -19,7 +19,7 @@ This is a javascript project based on nodeJS / npm. After installing node / npm,
 
 use `npx xfl` to subset fonts with `xfl`:
 
-    npx xfl <font-dir> -f <word-frequency-csv> -o <output-dir> -c <major-subset-size> -s <subset-size>
+    npx xfl font-dir [-f word-frequency-csv] [-o output-dir] [-c major-subset-size] [-s subset-size]
 
 
 where:
@@ -35,6 +35,11 @@ where:
    - sample csv is for tranditional Chinese, derived from [moe.gov.tw](http://language.moe.gov.tw/001/Upload/files/SITE_CONTENT/M0001/86NEWS/download/86rest17.TXT)
  - `major-subset-size`: how many glyphs to put in the major subset. default 1500 if omitted.
  - `subset-size`: how many glyphs to put in other subsets. default 100 if omitted.
+
+Additionally, if you encountered errors about `Out Of Memory`, you can add change nodeJS config by setting following environment variable:
+
+    export NODE_OPTIONS=--max_old_space_size=4096
+
 
 Generally speaking, the steps of font subsetting by `xfl` are as following:
 

@@ -1,12 +1,11 @@
-require! <[fs fs-extra fontmin opentype.js path colors progress gulp-rename bluebird ttf2woff2]>
+require! <[fs fs-extra @plotdb/opentype.js path colors progress ttf2woff2 ttf2woff]>
 
 font-dir = if !process.argv.2 => \../fonts else process.argv.2
 out-dir = "../output"
-Promise = bluebird
 
 common-ranges = [[0,0xff], [0xff00, 0xffef]]
-common-size = 1000
-set-size = 50
+common-size = 1500 # size of the predefined common subset of font
+set-size = 100 # size of subset font
 
 if !fs.exists-sync font-dir =>
   console.log "#font-dir directory not found."
@@ -24,17 +23,17 @@ font-file-finder = (parent) ->
   ret = []
   for file in files =>
     if fs.stat-sync file .is-directory! => ret = ret ++ font-file-finder(file)
-    else if /\.[t]tf$/.exec(file) => ret.push file
+    else if /\.[ot]tf$/.exec(file) => ret.push file
   return ret
 
-word-frequency = (file = "word-frequency.csv") ->
+word-frequency = (file = "data/word-frequency.csv") ->
   list = (fs.read-file-sync file .toString!)
     .split(\\n)
     .map -> it.split ','
     .filter -> it and it.length and it.length >=2 and it.0 and !isNaN(+it.1)
     .map -> [it.0.charCodeAt(0), +it.1]
   for range in common-ranges =>
-    list = [[i,0] for i from range.0 to range.1] ++ list
+    list = [[i,-1] for i from range.0 to range.1] ++ list
   return list
 
 code-in-font = (font) -> new Promise (res, rej) ->
@@ -43,63 +42,90 @@ code-in-font = (font) -> new Promise (res, rej) ->
     ret = []
     if e => return rej new Error(e)
     glyphs = font.glyphs.glyphs
-    for i from 0 til font.glyphs.length
-      glyph = glyphs[i]
-      if !(glyph and glyph.unicode) => continue
-      # while this should be checked, it cause out of memory bug
-      # if !glyph.xMax => continue
-      ret ++= glyph.unicodes
+    for k,glyph of font.glyphs.glyphs =>
+      ret ++= ([glyph.unicode] ++ (glyph.unicodes or []))
+    ret = Array.from(new Set(ret.filter(->it)))
     res ret
 
 files = font-file-finder font-dir
+files = files.filter -> !/NotoSerifCJKtc-Black|SoukouMincho/.exec(it)
+
 wordlist = word-frequency!
-
-subset-font = (data) -> new Promise (res, rej) ->
-  try
-    {filename, basename, set-idx, codes} = data{filename, basename, set-idx, codes}
-    fm  = new fontmin!src filename
-    if /\.otf$/.exec(filename) => fm.use fontmin.otf2ttf!
-    fm.dest path.join(out-dir, basename)
-      .use gulp-rename("#set-idx.ttf")
-      .use fontmin.glyph text: codes.map(-> String.fromCharCode(it)).join('')
-      .run (e, f) ->
-        data.bar.tick codes.length
-        if e => return rej new Error(e)
-        return res f
-  catch e
-    return rej new Error(e)
-
-iterate-code = (code, data, force-set = false) ->
-  Promise.resolve!
-    .then ->
-      if code and !isNaN(code) and data.code-available[code] and !data.code-to-set[code.toString 16] =>
-        delete data.code-available[code]
-        data.codes.push code
-        data.code-to-set[code.toString 16] = data.set-idx
-      promise = if force-set or (data.set-idx == 1 and data.codes.length >= common-size)
-      or (data.set-idx > 1 and data.codes.length >= set-size) =>
-        subset-font data .finally ->
-          data.codes = []
-          data.set-idx++
-      else Promise.resolve!
-      return promise
+wordfreq = Object.fromEntries wordlist
 
 iterate-codes = (data) -> new Promise (res, rej) ->
-  _ = ->
-    if !data or !data.list or !data.list.length =>
-      return iterate-code null, data, true
-        .then -> return res data
-        .catch ->
-          data.failed.push [data.set-idx - 1, it]
-          return res data
-    code = data.list.splice(0, 1).0
-    if !code => return _!
-    iterate-code code, data
-      .then -> _!
+  font = data.otfont
+  count = 0
+  for i from 0 til data.list.length =>
+    code = data.list[i]
+    if code and !isNaN(code) and data.code-available[code] and !data.code-to-set[code] =>
+      delete data.code-available[code]
+      data.code-to-set[code] = data.set-idx
+      count++
+    if (data.set-idx == 1 and count >= common-size)
+    or (data.set-idx > 1 and count >= set-size) =>
+      count = 0
+      data.set-idx++
+  console.log "   - total #{Array.from(new Set([v for k,v of data.code-to-set])).length} subsets will be created."
+  glyphs = {}
+  notdef = font.glyphs.get(0)
+  notdef.name = '.notdef'
+  for k,glyph of font.glyphs.glyphs =>
+    if glyph.name == '.notdef' => continue
+    unicodes = Array.from(new Set(([glyph.unicode] ++ (glyph.unicodes or [])).filter(->it)))
+    # or 1: all glyphs without unicode go to set 1.
+    unicodes.map (uc) ->
+      glyphs[][data.code-to-set[uc] or 1].push glyph
+  list = [{idx: +k, glyphs: ([notdef] ++ v), codes: v.map(-> it.unicode)} for k,v of glyphs]
+
+  # dedup
+  hash = {}
+  list.map (item) ->
+    item.glyphs = item.glyphs.filter ->
+      v = hash[it.unicode] = (hash[it.unicode] or 0) + 1
+      return v < 2
+    item.codes = item.glyphs.map(-> it.unicode).filter(->it)
+
+  data.bar = bar = progress-bar(list.length + 1, "subsetting")
+  bar.tick!
+  fs-extra.ensure-dir-sync path.join(out-dir, data.basename)
+  _ = (idx = 0) ->
+    if !(item = list[idx]) => return res data
+    # use opentype - two issues:
+    #  - OOM: need `export NODE_OPTIONS=--max_old_space_size=4096` to work around
+    #  - toPathData return incorrect result with generated fonts.
+    if true and 'use opentype.js' =>
+      p = new Promise (res, rej) ->
+        nf = new opentype.Font({glyphs: item.glyphs} <<< {
+          familyName: font.names.fontFamily.en, styleName: font.names.fontSubfamily.en
+        } <<< font{unitsPerEm, ascender, descender})
+        fs.write-file path.join(out-dir, data.basename, "#{item.idx}.ttf"), Buffer.from(nf.toArrayBuffer!), (e) ->
+          if e => rej e else res!
+
+    # use fontmin
+    else
+      p = new Promise (res, rej) ->
+        try
+          {filename, basename, codes} = data{filename, basename, codes}
+          fm  = new fontmin!src filename
+          if /\.otf$/.exec(filename) => fm.use fontmin.otf2ttf!
+          fm.dest path.join(out-dir, basename)
+            .use gulp-rename("#{item.idx}.ttf")
+            .use fontmin.glyph text: item.codes.map(-> String.fromCharCode(it)).join('')
+            .run (e, f) ->
+              if e => return rej new Error(e)
+              return res f
+        catch e
+          return rej new Error(e)
+
+    p
+      .finally -> bar.tick!
+      .then -> _ idx + 1
       .catch ->
-        data.failed.push [data.set-idx - 1, it]
-        _!
+        console.log "[subset] rejection: ", it
+        _ idx + 1
   _!
+
 
 ttf-to-woff2s = (data) -> new Promise (res, rej) ->
   try
@@ -107,14 +133,18 @@ ttf-to-woff2s = (data) -> new Promise (res, rej) ->
       .filter -> /\.ttf$/.exec(it)
       .filter -> !/all/.exec(it)
       .map -> path.join(out-dir, data.basename, it)
-    bar = progress-bar ttfs.length, "converting"
+    bar = progress-bar (2 * ttfs.length + 2), "converting"
+    bar.tick!
     _ = ->
       if !ttfs or !ttfs.length =>
         bar.tick!
         return res data
       file = ttfs.splice 0, 1 .0
       if !file => return _!
-      <- fs.write-file file.replace(/\.ttf$/, '.woff2'), ttf2woff2(fs.read-file-sync file), _
+      ttfbuf = fs.read-file-sync file
+      <- fs.write-file file.replace(/\.ttf$/, '.woff'), ttf2woff(new Uint8Array(ttfbuf)).buffer, _
+      bar.tick!
+      <- fs.write-file file.replace(/\.ttf$/, '.woff2'), ttf2woff2(ttfbuf), _
       bar.tick!
       _!
     _!
@@ -128,19 +158,35 @@ process-font = (filename) -> new Promise (res, rej) ->
       [code-available, code-to-set] = [{}, {}]
       [codes, idx, set-idx, count] = [[], 0, 1, 0]
       for code in font-codes => code-available[code] = true
+      list = Array
+        .from(new Set(wordlist.map(-> it.0) ++ font-codes))
+        .filter -> code-available[it]
+        .sort (b,a) ->
+          a = wordfreq[a]
+          b = wordfreq[b]
+          if !(a? and b?) => return 0
+          if !(b?) => return 1
+          if !(a?) => return -1
+          if (a < 0 and b < 0) => return 0
+          if a < 0 => return 1
+          if b < 0 => return -1
+          return a - b
       console.log "   - #{font-codes.length} code available."
+
       data = {
         filename, code-available, code-to-set, codes, set-idx,
-        list: wordlist.map(-> it.0) ++ font-codes,
-        bar: progress-bar(font-codes.length, "subsetting"), failed: []
-        basename: path.basename(filename).replace(/\.[t]tf$/, '')
+        list: list, failed: []
+        basename: path.basename(filename).replace(/\.[ot]tf$/, '')
       }
-      iterate-codes data
+      opentype.load data.filename
+        .then (font) ->
+          data.otfont = font
+          iterate-codes data
     .then (data) ->
       console.log "   - subsetted into #{data.set-idx} pieces."
       fs-extra.copy-sync filename, path.join(out-dir, data.basename, "all.ttf")
-      data.bar.tick data.list.length
-      console.log "   - converting to woff2..."
+      if data.bar => data.bar.tick!
+      console.log "   - converting to woff/woff2..."
       ttf-to-woff2s data
     .then (data) ->
       if data.failed.length =>
@@ -150,7 +196,7 @@ process-font = (filename) -> new Promise (res, rej) ->
           console.log "     subset #{item.0}: #{item.1}"
         for k,v of data.code-to-set => if ~failed-set.indexOf(v) => delete data.code-to-set[k]
       idx-map = {}
-      for k,v of data.code-to-set => idx-map[][v].push k.toString(16)
+      for k,v of data.code-to-set => idx-map[][v].push (+k).toString(16)
       charmap = [v for k,v of idx-map].map(->it.join(' ')).join('\n')
       fs.write-file-sync path.join(out-dir, data.basename, "charmap.txt"), charmap
       console.log "   - process done. ".green

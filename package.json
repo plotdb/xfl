@@ -43,7 +43,7 @@
     "stylus": "^0.54.5",
     "template": "github:zbryikt/template#v2.3.13",
     "ttf2woff": "^2.0.2",
-    "ttf2woff2": "^3.0.0",
+    "ttf2woff2": "^4.0.0",
     "uglify-js": "^3.2.0",
     "uglifycss": "^0.0.29",
     "yargs": "^16.2.0"

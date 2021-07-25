@@ -445,17 +445,15 @@
       }
     });
   };
-  /*
-  process-fonts files
-    .then (data) ->
-      console.log " * all fonts processed. "
-      console.log " * statistics: "
-      console.log "   - passed:  [ #{data.passed.length} ]".green
-      console.log "   - partial passed: [ #{data.failed.length} ]".yellow
-      console.log " * finished."
-      console.log ""
-    .catch ->
-      console.log "failed due to following reason: ".red
-      console.log it
-  */
+  processFonts(files).then(function(data){
+    console.log(" * all fonts processed. ");
+    console.log(" * statistics: ");
+    console.log(("   - passed:  [ " + data.passed.length + " ]").green);
+    console.log(("   - partial passed: [ " + data.failed.length + " ]").yellow);
+    console.log(" * finished.");
+    return console.log("");
+  })['catch'](function(it){
+    console.log("failed due to following reason: ".red);
+    return console.log(it);
+  });
 }).call(this);

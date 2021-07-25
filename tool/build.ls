@@ -105,7 +105,8 @@ iterate-codes = (data) -> new Promise (res, rej) ->
       glyphs[][data.code-to-set[uc] or 1].push glyph
   list = [{idx: +k, glyphs: ([notdef] ++ v), codes: v.map(-> it.unicode)} for k,v of glyphs]
 
-  # dedup
+  # dedup to prevent `OTS parsing error: cmap: Failed to parse table`
+  # described in https://stackoverflow.com/questions/56866897/
   hash = {}
   list.map (item) ->
     item.glyphs = item.glyphs.filter ->
@@ -129,7 +130,7 @@ iterate-codes = (data) -> new Promise (res, rej) ->
         fs.write-file path.join(out-dir, data.basename, "#{item.idx}.ttf"), Buffer.from(nf.toArrayBuffer!), (e) ->
           if e => rej e else res!
 
-    # use fontmin
+    # use fontmin - fontmin uses fonteditor-core, which doesn't work for NotoSerif. left here for reference.
     else
       p = new Promise (res, rej) ->
         try

@@ -20,6 +20,9 @@
   "scripts": {
     "start": "npx server -r web -o true"
   },
+  "bin": {
+    "xfl": "./bin/build.js"
+  },
   "devDependencies": {
     "@loadingio/debounce.js": "0.0.1",
     "@loadingio/ldquery": "^2.0.0",

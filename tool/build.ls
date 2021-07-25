@@ -1,11 +1,37 @@
-require! <[fs fs-extra @plotdb/opentype.js path colors progress ttf2woff2 ttf2woff]>
+require! <[fs fs-extra @plotdb/opentype.js yargs path colors progress ttf2woff2 ttf2woff]>
 
-font-dir = if !process.argv.2 => \../fonts else process.argv.2
-out-dir = "../output"
+argv = yargs
+  .usage "usage: npx xfl font-dir [-o output-dir] [-c major-subset-size] [-s subset-size]"
+  .option \output, do
+    alias: \o
+    description: "output directory. default `./output/`"
+    type: \string
+  .option \major-subset-size, do
+    alias: \c
+    description: "major-subset-size, default 1500"
+    type: \number
+  .option \subset-size, do
+    alias: \s
+    description: "subset-size, default 100"
+    type: \number
+  .option \word-frequency, do
+    alias: \f
+    description: "word frequency csv file path"
+    type: \number
+  .help \help
+  .alias \help, \h
+  .check (argv, options) ->
+    if !argv._.0 => throw new Error("missing font dir")
+    return true
+  .argv
 
+libdir = path.dirname fs.realpathSync __filename
 common-ranges = [[0,0xff], [0xff00, 0xffef]]
-common-size = 1500 # size of the predefined common subset of font
-set-size = 100 # size of subset font
+common-size = argv.c or 1500 # size of the predefined common subset of font
+set-size = argv.s or 100 # size of subset font
+font-dir = argv._.0 or "../fonts"
+out-dir = argv.o or "../output"
+default-frequency-file = path.join(libdir, '..', 'tool', 'data', 'word-frequency.csv')
 
 if !fs.exists-sync font-dir =>
   console.log "#font-dir directory not found."
@@ -26,7 +52,8 @@ font-file-finder = (parent) ->
     else if /\.[ot]tf$/.exec(file) => ret.push file
   return ret
 
-word-frequency = (file = "data/word-frequency.csv") ->
+word-frequency = (file) ->
+  if !file => file = default-frequency-file
   list = (fs.read-file-sync file .toString!)
     .split(\\n)
     .map -> it.split ','

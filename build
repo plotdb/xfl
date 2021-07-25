@@ -3,11 +3,17 @@
 echo "prepare..."
 rm -rf dist
 mkdir -p dist
+rm -rf bin
+mkdir -p bin
 
-echo "building xfl.ls -> xfl.js ..."
+echo "building src/xfl.ls -> dist/xfl.js ..."
 ./node_modules/.bin/lsc -cp --no-header src/xfl.ls > dist/xfl.js
-echo "minify xfl.js -> xfl.min.js ..."
+echo "minify dist/xfl.js -> dist/xfl.min.js ..."
 ./node_modules/.bin/uglifyjs dist/xfl.js > dist/xfl.min.js
+echo "building build.ls -> bin/build.js ..."
+echo "#!/usr/bin/env node" > ./bin/build.js
+./node_modules/.bin/lsc -cp --no-header tool/build.ls >> bin/build.js
+chmod 755 ./bin/build.js
 
 echo "copy dist to web ..."
 rm -rf web/static/assets/lib/@plotdb/xfl/dev/
